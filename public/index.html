@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+    <title>TeacherBattle</title>
+</head>
+<body>
+
+```
+<h1>TeacherBattle</h1>
+
+<p>Enter your name:</p>
+
+<input
+    id="name"
+    type="text"
+    placeholder="Your name"
+>
+
+<button id="playButton">
+    PLAY
+</button>
+
+<p id="status"></p>
+
+<script>
+    const playButton =
+        document.getElementById("playButton");
+
+    const nameInput =
+        document.getElementById("name");
+
+    const status =
+        document.getElementById("status");
+
+    playButton.onclick = () => {
+        const name =
+            nameInput.value.trim();
+
+        if (name === "") {
+            status.textContent =
+                "Please enter your name.";
+
+            return;
+        }
+
+        sessionStorage.setItem(
+            "playerName",
+            name
+        );
+
+        window.location.href =
+            "lobby.html";
+    };
+
+    nameInput.addEventListener(
+        "keydown",
+        (event) => {
+            if (event.key === "Enter") {
+                playButton.click();
+            }
+        }
+    );
+</script>
+```
+
+</body>
+</html>

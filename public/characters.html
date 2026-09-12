@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+    <title>TeacherBattle - Choose Characters</title>
+</head>
+<body>
+
+```
+<h1>Choose Your Battle Team</h1>
+
+<p>Choose exactly 3 characters.</p>
+
+<div id="characters">
+
+    <button
+        class="character"
+        data-character="Mr. Sannes"
+    >
+        Mr. Sannes
+    </button>
+
+    <button
+        class="character"
+        data-character="Mr. Dutlinger"
+    >
+        Mr. Dutlinger
+    </button>
+
+    <button
+        class="character"
+        data-character="Dr. Savic"
+    >
+        Dr. Savic
+    </button>
+
+    <button
+        class="character"
+        data-character="Mrs. Smauley"
+    >
+        Mrs. Smauley
+    </button>
+
+    <button
+        class="character"
+        data-character="Mrs. Aysien"
+    >
+        Mrs. Aysien
+    </button>
+
+    <button
+        class="character"
+        data-character="Mr. Smauley"
+    >
+        Mr. Smauley
+    </button>
+
+</div>
+
+<h2>Your Team</h2>
+
+<div id="team">
+    <p>No characters selected.</p>
+</div>
+
+<p id="counter">
+    0 / 3 selected
+</p>
+
+<button
+    id="readyButton"
+    disabled
+>
+    READY
+</button>
+
+<p id="status">
+    Connecting...
+</p>
+
+<script src="/socket.io/socket.io.js"></script>
+
+<script>
+
+    const socket = io();
+
+    const playerName =
+        sessionStorage.getItem(
+            "playerName"
+        );
+
+    const selectedCharacters = [];
+
+    const buttons =
+        document.querySelectorAll(
+            ".character"
+        );
+
+    const teamDiv =
+        document.getElementById(
+            "team"
+        );
+
+    const counter =
+        document.getElementById(
+            "counter"
+        );
+
+    const readyButton =
+        document.getElementById(
+            "readyButton"
+        );
+
+    const status =
+        document.getElementById(
+            "status"
+        );
+
+
+    if (!playerName) {
+
+        window.location.href =
+            "index.html";
+
+    }
+
+
+    socket.on(
+        "connect",
+        () => {
+
+            socket.emit(
+                "setName",
+                playerName
+            );
+
+            status.textContent =
+                "Connected as " +
+                playerName;
+
+        }
+    );
+
+
+    buttons.forEach(
+        (button) => {
+
+            button.addEventListener(
+                "click",
+                () => {
+
+                    const character =
+                        button.dataset.character;
+
+
+                    if (
+                        selectedCharacters.includes(
+                            character
+                        )
+                    ) {
+
+                        const index =
+                            selectedCharacters.indexOf(
+                                character
+                            );
+
+                        selectedCharacters.splice(
+                            index,
+                            1
+                        );
+
+                        button.style.fontWeight =
+                            "normal";
+
+                    } else {
+
+                        if (
+                            selectedCharacters.length >= 3
+                        ) {
+
+                            return;
+
+                        }
+
+                        selectedCharacters.push(
+                            character
+                        );
+
+                        button.style.fontWeight =
+                            "bold";
+
+                    }
+
+
+                    updateTeam();
+
+                }
+            );
+
+        }
+    );
+
+
+    function updateTeam() {
+
+        teamDiv.innerHTML = "";
+
+
+        if (
+            selectedCharacters.length === 0
+        ) {
+
+            teamDiv.innerHTML =
+                "<p>No characters selected.</p>";
+
+        } else {
+
+            selectedCharacters.forEach(
+                (character, index) => {
+
+                    const p =
+                        document.createElement(
+                            "p"
+                        );
+
+                    p.textContent =
+                        (index + 1) +
+                        ". " +
+                        character;
+
+                    teamDiv.appendChild(
+                        p
+                    );
+
+                }
+            );
+
+        }
+
+
+        counter.textContent =
+            selectedCharacters.length +
+            " / 3 selected";
+
+
+        readyButton.disabled =
+            selectedCharacters.length !== 3;
+
+    }
+
+
+    readyButton.addEventListener(
+        "click",
+        () => {
+
+            if (
+                selectedCharacters.length !== 3
+            ) {
+
+                return;
+
+            }
+
+
+            readyButton.disabled =
+                true;
+
+            readyButton.textContent =
+                "WAITING...";
+
+
+            status.textContent =
+                "Waiting for opponent...";
+
+
+            socket.emit(
+                "setName",
+                playerName
+            );
+
+
+            socket.emit(
+                "teamReady",
+                selectedCharacters
+            );
+
+        }
+    );
+
+
+    socket.on(
+        "startBattle",
+        (battleId) => {
+
+            status.textContent =
+                "Battle starting!";
+
+
+            sessionStorage.setItem(
+                "battleId",
+                battleId
+            );
+
+
+            setTimeout(
+                () => {
+
+                    window.location.href =
+                        "battle.html";
+
+                },
+                300
+            );
+
+        }
+    );
+
+
+    socket.on(
+        "battleError",
+        (message) => {
+
+            status.textContent =
+                message;
+
+            readyButton.disabled =
+                false;
+
+            readyButton.textContent =
+                "READY";
+
+        }
+    );
+
+</script>
+```
+
+</body>
+</html>

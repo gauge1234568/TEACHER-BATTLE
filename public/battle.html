@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>TeacherBattle - Battle</title>
+</head>
+
+<body>
+
+    <h1>TeacherBattle</h1>
+    <h2>Battle!</h2>
+
+    <hr>
+
+    <h2 id="myName">You</h2>
+
+    <p>
+        Character:
+        <strong id="myCharacter">Loading...</strong>
+    </p>
+
+    <p>
+        HP:
+        <span id="myHP">0</span> /
+        <span id="myMaxHP">0</span>
+    </p>
+
+    <p>
+        Stamina:
+        <span id="myStamina">0</span> /
+        <span id="myMaxStamina">0</span>
+    </p>
+
+    <p>
+        Energy:
+        <span id="myEnergy">0</span> / 100
+    </p>
+
+    <hr>
+
+    <h2 id="opponentName">Opponent</h2>
+
+    <p>
+        Character:
+        <strong id="opponentCharacter">Loading...</strong>
+    </p>
+
+    <p>
+        HP:
+        <span id="opponentHP">0</span> /
+        <span id="opponentMaxHP">0</span>
+    </p>
+
+    <p>
+        Stamina:
+        <span id="opponentStamina">0</span> /
+        <span id="opponentMaxStamina">0</span>
+    </p>
+
+    <p>
+        Energy:
+        <span id="opponentEnergy">0</span> / 100
+    </p>
+
+    <hr>
+
+    <h2 id="turnStatus">Loading...</h2>
+
+    <p id="status">
+        Connecting...
+    </p>
+
+    <hr>
+
+    <h3>Character Moves</h3>
+
+    <div id="moveButtons"></div>
+
+    <br>
+
+    <button id="specialButton">
+        SPECIAL
+    </button>
+
+    <hr>
+
+    <button id="switchButton">
+        SWITCH CHARACTER
+    </button>
+
+    <div id="switchMenu" style="display: none;">
+
+        <h3>Choose Character</h3>
+
+        <button class="switchCharacter" data-index="0">
+            Character 1
+        </button>
+
+        <button class="switchCharacter" data-index="1">
+            Character 2
+        </button>
+
+        <button class="switchCharacter" data-index="2">
+            Character 3
+        </button>
+
+    </div>
+
+    <hr>
+
+    <h3>Battle Log</h3>
+
+    <div id="battleLog">
+        <p>Waiting for battle...</p>
+    </div>
+
+
+    <script src="/socket.io/socket.io.js"></script>
+
+    <script>
+
+        const socket = io();
+
+        const battleId =
+            sessionStorage.getItem("battleId");
+
+        const playerName =
+            sessionStorage.getItem("playerName");
+
+        const specialButton =
+            document.getElementById("specialButton");
+
+        const switchButton =
+            document.getElementById("switchButton");
+
+        const moveButtons =
+            document.getElementById("moveButtons");
+
+        const switchMenu =
+            document.getElementById("switchMenu");
+
+        const turnStatus =
+            document.getElementById("turnStatus");
+
+        const status =
+            document.getElementById("status");
+
+        const battleLog =
+            document.getElementById("battleLog");
+
+
+        if (!battleId || !playerName) {
+
+            window.location.href =
+                "lobby.html";
+
+        }
+
+
+        socket.on("connect", () => {
+
+            status.textContent =
+                "Connected! Loading battle...";
+
+            socket.emit(
+                "requestBattle",
+                {
+                    battleId: battleId,
+                    playerName: playerName
+                }
+            );
+
+        });
+
+
+        socket.on(
+            "battleUpdate",
+            (battle) => {
+
+                updateScreen(battle);
+
+            }
+        );
+
+
+        socket.on(
+            "battleError",
+            (message) => {
+
+                status.textContent =
+                    message;
+
+            }
+        );
+
+
+        socket.on(
+            "battleAction",
+            (message) => {
+
+                addLog(message);
+
+            }
+        );
+
+
+        socket.on(
+            "battleWon",
+            () => {
+
+                turnStatus.textContent =
+                    "YOU WIN!";
+
+                disableActions();
+
+                addLog("YOU WON!");
+
+            }
+        );
+
+
+        socket.on(
+            "battleLost",
+            () => {
+
+                turnStatus.textContent =
+                    "YOU LOSE!";
+
+                disableActions();
+
+                addLog("YOU LOST!");
+
+            }
+        );
+
+
+        function updateScreen(battle) {
+
+            const opponentName =
+                battle.names.find(
+                    name => name !== playerName
+                );
+
+            if (!opponentName) {
+
+                status.textContent =
+                    "ERROR: Opponent not found.";
+
+                return;
+
+            }
+
+
+            const myCharacterIndex =
+                battle.active[playerName];
+
+            const opponentCharacterIndex =
+                battle.active[opponentName];
+
+
+            const myCharacter =
+                battle.teams[playerName]
+                    [myCharacterIndex];
+                    const specialNames = {
+    "Mr. Sannes": "GOLDEN SANNES",
+    "Mr. Dutlinger": "50 CAL. TURRET",
+    "Dr. Savic": "MUSIC LISTENING TEST",
+    "Mrs. Smauley": "LITERATURE BOOKS",
+    "Mrs. Aysien": "PENCIL STAB",
+    "Mr. Smauley": "BACKUP"
+};
+
+specialButton.textContent =
+    specialNames[myCharacter] || "SPECIAL";
+
+            const opponentCharacter =
+                battle.teams[opponentName]
+                    [opponentCharacterIndex];
+
+
+            document.getElementById(
+                "myName"
+            ).textContent =
+                playerName;
+
+
+            document.getElementById(
+                "opponentName"
+            ).textContent =
+                opponentName;
+
+
+            document.getElementById(
+                "myCharacter"
+            ).textContent =
+                myCharacter;
+
+
+            document.getElementById(
+                "opponentCharacter"
+            ).textContent =
+                opponentCharacter;
+
+
+            const myHP =
+                battle.hp[playerName]
+                    [myCharacterIndex];
+
+            const myMaxHP =
+                battle.maxHP[playerName]
+                    [myCharacterIndex];
+
+            const myStamina =
+                battle.stamina[playerName]
+                    [myCharacterIndex];
+
+            const myMaxStamina =
+                battle.maxStamina[playerName]
+                    [myCharacterIndex];
+
+            const myEnergy =
+                battle.energy[playerName]
+                    [myCharacterIndex];
+
+
+            document.getElementById(
+                "myHP"
+            ).textContent =
+                myHP;
+
+            document.getElementById(
+                "myMaxHP"
+            ).textContent =
+                myMaxHP;
+
+            document.getElementById(
+                "myStamina"
+            ).textContent =
+                myStamina;
+
+            document.getElementById(
+                "myMaxStamina"
+            ).textContent =
+                myMaxStamina;
+
+            document.getElementById(
+                "myEnergy"
+            ).textContent =
+                myEnergy;
+
+
+            const opponentHP =
+                battle.hp[opponentName]
+                    [opponentCharacterIndex];
+
+            const opponentMaxHP =
+                battle.maxHP[opponentName]
+                    [opponentCharacterIndex];
+
+            const opponentStamina =
+                battle.stamina[opponentName]
+                    [opponentCharacterIndex];
+
+            const opponentMaxStamina =
+                battle.maxStamina[opponentName]
+                    [opponentCharacterIndex];
+
+            const opponentEnergy =
+                battle.energy[opponentName]
+                    [opponentCharacterIndex];
+
+
+            document.getElementById(
+                "opponentHP"
+            ).textContent =
+                opponentHP;
+
+            document.getElementById(
+                "opponentMaxHP"
+            ).textContent =
+                opponentMaxHP;
+
+            document.getElementById(
+                "opponentStamina"
+            ).textContent =
+                opponentStamina;
+
+            document.getElementById(
+                "opponentMaxStamina"
+            ).textContent =
+                opponentMaxStamina;
+
+            document.getElementById(
+                "opponentEnergy"
+            ).textContent =
+                opponentEnergy;
+
+
+            const myTurn =
+                battle.turn === playerName;
+
+
+            if (myTurn) {
+
+                turnStatus.textContent =
+                    "YOUR TURN";
+
+                status.textContent =
+                    "Choose a move.";
+
+            } else {
+
+                turnStatus.textContent =
+                    "OPPONENT'S TURN";
+
+                status.textContent =
+                    "Waiting for opponent...";
+
+            }
+
+
+            specialButton.disabled =
+                !myTurn || myEnergy < 100;
+
+            switchButton.disabled =
+                !myTurn;
+
+
+            updateMoveButtons(
+                myCharacter,
+                myTurn
+            );
+
+
+            updateSwitchButtons(
+                battle,
+                playerName,
+                myTurn
+            );
+
+        }
+
+
+        function updateMoveButtons(
+            character,
+            myTurn
+        ) {
+
+            moveButtons.innerHTML = "";
+
+            const moves =
+                getMoves(character);
+
+
+            moves.forEach(
+                (move) => {
+
+                    const button =
+                        document.createElement(
+                            "button"
+                        );
+
+
+                    button.textContent =
+                        move.name;
+
+
+                    button.disabled =
+                        !myTurn;
+
+
+                    button.onclick =
+                        () => {
+
+                            disableActions();
+
+
+                            socket.emit(
+                                "useMove",
+                                {
+                                    battleId:
+                                        battleId,
+
+                                    moveId:
+                                        move.id
+                                }
+                            );
+
+                        };
+
+
+                    moveButtons.appendChild(
+                        button
+                    );
+
+                }
+            );
+
+        }
+
+
+        function getMoves(character) {
+
+            if (
+                character === "Mr. Sannes"
+            ) {
+
+                return [
+
+                    {
+                        name:
+                            "VOICECRACK",
+                        id:
+                            "voicecrack"
+                    },
+
+                    {
+                        name:
+                            "3210",
+                        id:
+                            "3210"
+                    },
+
+                    {
+                        name:
+                            "4 QUARTERS",
+                        id:
+                            "4quarters"
+                    }
+
+                ];
+
+            }
+
+
+            if (
+                character === "Mr. Dutlinger"
+            ) {
+
+                return [
+
+                    {
+                        name:
+                            "MARINE BOOTCAMP",
+                        id:
+                            "marinebootcamp"
+                    },
+
+                    {
+                        name:
+                            "HOO-RAH",
+                        id:
+                            "hoorah"
+                    },
+
+                    {
+                        name:
+                            "MTN DEW CHUCK",
+                        id:
+                            "mtndewchuck"
+                    }
+
+                ];
+
+            }
+
+
+            if (
+                character === "Dr. Savic"
+            ) {
+
+                return [
+
+                    {
+                        name:
+                            "GUITAR SMASH",
+                        id:
+                            "guitarsmash"
+                    },
+
+                    {
+                        name:
+                            "MUSIC NOTES",
+                        id:
+                            "musicnotes"
+                    },
+
+                    {
+                        name:
+                            "MUSIC HISTORY DAY",
+                        id:
+                            "musichistoryday"
+                    }
+
+                ];
+
+            }
+
+
+            if (
+                character === "Mrs. Smauley"
+            ) {
+
+                return [
+
+                    {
+                        name:
+                            "RULER SMACK",
+                        id:
+                            "rulersmack"
+                    },
+
+                    {
+                        name:
+                            "BOOK MINIGUN",
+                        id:
+                            "bookminigun"
+                    }
+
+                ];
+
+            }
+
+
+            if (
+                character === "Mrs. Aysien"
+            ) {
+
+                return [
+
+                    {
+                        name:
+                            "BURNING OF THE WHITE HOUSE",
+                        id:
+                            "burningwhitehouse"
+                    },
+
+                    {
+                        name:
+                            "GUERILLA WARFARE",
+                        id:
+                            "guerillawarfare"
+                    },
+
+                    {
+                        name:
+                            "WASHINGTON'S SPEECH",
+                        id:
+                            "washingtonspeech"
+                    }
+
+                ];
+
+            }
+
+
+            if (
+                character === "Mr. Smauley"
+            ) {
+
+                return [
+
+                    {
+                        name:
+                            "MAP DAY",
+                        id:
+                            "mapday"
+                    },
+
+                    {
+                        name:
+                            "AUGUSTUS' CHARM",
+                        id:
+                            "augustuscharm"
+                    },
+
+                    {
+                        name:
+                            "BACKSTAB",
+                        id:
+                            "backstab"
+                    }
+
+                ];
+
+            }
+
+
+            return [];
+
+        }
+
+
+        specialButton.onclick =
+            () => {
+
+                disableActions();
+
+
+                socket.emit(
+                    "special",
+                    battleId
+                );
+
+            };
+
+
+        switchButton.onclick =
+            () => {
+
+                if (
+                    switchButton.disabled
+                ) {
+
+                    return;
+
+                }
+
+
+                switchMenu.style.display =
+                    "block";
+
+            };
+
+
+        function updateSwitchButtons(
+            battle,
+            player,
+            myTurn
+        ) {
+
+            const buttons =
+                document.querySelectorAll(
+                    ".switchCharacter"
+                );
+
+
+            buttons.forEach(
+                (button) => {
+
+                    const index =
+                        Number(
+                            button.dataset.index
+                        );
+
+
+                    const character =
+                        battle.teams[player]
+                            [index];
+
+
+                    button.textContent =
+                        character;
+
+
+                    button.disabled =
+                        !myTurn ||
+                        battle.hp[player][index] <= 0 ||
+                        battle.active[player] === index;
+
+                }
+            );
+
+        }
+
+
+        document.querySelectorAll(
+            ".switchCharacter"
+        ).forEach(
+            (button) => {
+
+                button.onclick =
+                    () => {
+
+                        const index =
+                            Number(
+                                button.dataset.index
+                            );
+
+
+                        switchMenu.style.display =
+                            "none";
+
+
+                        disableActions();
+
+
+                        socket.emit(
+                            "switchCharacter",
+                            {
+                                battleId:
+                                    battleId,
+
+                                index:
+                                    index
+                            }
+                        );
+
+                    };
+
+            }
+        );
+
+
+        function disableActions() {
+
+            specialButton.disabled =
+                true;
+
+            switchButton.disabled =
+                true;
+
+
+            const buttons =
+                moveButtons.querySelectorAll(
+                    "button"
+                );
+
+
+            buttons.forEach(
+                (button) => {
+
+                    button.disabled =
+                        true;
+
+                }
+            );
+
+        }
+
+
+        function addLog(message) {
+
+            const line =
+                document.createElement(
+                    "p"
+                );
+
+
+            line.textContent =
+                message;
+
+
+            battleLog.appendChild(
+                line
+            );
+
+
+            battleLog.scrollTop =
+                battleLog.scrollHeight;
+
+        }
+
+    </script>
+
+</body>
+</html>

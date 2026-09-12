@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+    <title>TeacherBattle - Lobby</title>
+</head>
+<body>
+
+```
+<h1>TeacherBattle</h1>
+<h2>Lobby</h2>
+
+<h3>Online Players</h3>
+
+<div id="players">
+    <p>Connecting...</p>
+</div>
+
+<hr>
+
+<div id="challengeBox" style="display: none;">
+    <h2 id="challengeText"></h2>
+
+    <button id="acceptButton">
+        ACCEPT
+    </button>
+
+    <button id="declineButton">
+        DECLINE
+    </button>
+</div>
+
+<br>
+
+<button id="singlePlayerButton">
+    SINGLE PLAYER
+</button>
+
+<p id="status">
+    Connecting...
+</p>
+
+<script src="/socket.io/socket.io.js"></script>
+
+<script>
+    const socket = io();
+
+    const playerName =
+        sessionStorage.getItem("playerName");
+
+    const playersDiv =
+        document.getElementById("players");
+
+    const status =
+        document.getElementById("status");
+
+    const challengeBox =
+        document.getElementById("challengeBox");
+
+    const challengeText =
+        document.getElementById("challengeText");
+
+    if (!playerName) {
+        window.location.href = "index.html";
+    }
+
+    socket.on("connect", () => {
+        console.log(
+            "Connected:",
+            socket.id
+        );
+
+        socket.emit(
+            "setName",
+            playerName
+        );
+
+        status.textContent =
+            "Connected as " +
+            playerName;
+    });
+
+    socket.on(
+        "playerList",
+        (players) => {
+            playersDiv.innerHTML = "";
+
+            const playerIds =
+                Object.keys(players);
+
+            if (
+                playerIds.length === 0
+            ) {
+                playersDiv.innerHTML =
+                    "<p>No players online.</p>";
+
+                return;
+            }
+
+            playerIds.forEach(
+                (id) => {
+                    const button =
+                        document.createElement(
+                            "button"
+                        );
+
+                    button.textContent =
+                        players[id];
+
+                    if (
+                        id === socket.id
+                    ) {
+                        button.textContent +=
+                            " (YOU)";
+
+                        button.disabled =
+                            true;
+                    } else {
+                        button.onclick =
+                            () => {
+                                socket.emit(
+                                    "challengePlayer",
+                                    id
+                                );
+
+                                status.textContent =
+                                    "Challenge sent to " +
+                                    players[id] +
+                                    "...";
+                            };
+                    }
+
+                    playersDiv.appendChild(
+                        button
+                    );
+
+                    playersDiv.appendChild(
+                        document.createElement(
+                            "br"
+                        )
+                    );
+                }
+            );
+        }
+    );
+
+    socket.on(
+        "challengeReceived",
+        (challengerName) => {
+            challengeText.textContent =
+                challengerName +
+                " wants to battle you!";
+
+            challengeBox.style.display =
+                "block";
+        }
+    );
+
+    document.getElementById(
+        "acceptButton"
+    ).onclick = () => {
+        socket.emit(
+            "challengeResponse",
+            {
+                accepted: true
+            }
+        );
+
+        challengeBox.style.display =
+            "none";
+
+        status.textContent =
+            "Challenge accepted!";
+    };
+
+    document.getElementById(
+        "declineButton"
+    ).onclick = () => {
+        socket.emit(
+            "challengeResponse",
+            {
+                accepted: false
+            }
+        );
+
+        challengeBox.style.display =
+            "none";
+
+        status.textContent =
+            "Challenge declined.";
+    };
+
+    socket.on(
+        "challengeResult",
+        (message) => {
+            status.textContent =
+                message;
+        }
+    );
+
+    socket.on(
+        "startCharacterSelection",
+        (matchId) => {
+            sessionStorage.setItem(
+                "matchId",
+                matchId
+            );
+
+            window.location.href =
+                "characters.html";
+        }
+    );
+
+    document.getElementById(
+        "singlePlayerButton"
+    ).onclick = () => {
+        status.textContent =
+            "Single Player is coming soon!";
+    };
+
+    socket.on(
+        "disconnect",
+        () => {
+            status.textContent =
+                "Disconnected from server.";
+        }
+    );
+</script>
+```
+
+</body>
+</html>
