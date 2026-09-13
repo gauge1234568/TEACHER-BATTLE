@@ -20,7 +20,7 @@ const battles = {};
 
 const characterStats = {
     "Mr. Sannes": {
-        hp: 200,
+        hp: 150,
         stamina: 100,
         moves: [
             {
@@ -33,7 +33,7 @@ const characterStats = {
             {
                 id: "3210",
                 name: "3210",
-                staminaCost: 10,
+                staminaCost: 7,
                 type: "damage",
                 amount: 15
             },
@@ -53,8 +53,8 @@ const characterStats = {
     },
 
     "Mr. Dutlinger": {
-        hp: 175,
-        stamina: 100,
+        hp: 250,
+        stamina: 125,
         moves: [
             {
                 id: "marinebootcamp",
@@ -313,6 +313,11 @@ function clampStats(battle) {
                     battle.maxStamina[name][i];
             }
 
+            // If stamina reaches 0, defeat the character.
+            if (battle.stamina[name][i] === 0) {
+                battle.hp[name][i] = 0;
+            }
+
             if (battle.energy[name][i] < 0) {
                 battle.energy[name][i] = 0;
             }
@@ -326,8 +331,12 @@ function clampStats(battle) {
 
 function addEnergy(battle, playerName) {
     const index = battle.active[playerName];
+    const character = battle.teams[playerName][index];
 
-    battle.energy[playerName][index] += 20;
+    const energyGain =
+        character === "Mr. Sannes" ? 10 : 20;
+
+    battle.energy[playerName][index] += energyGain;
 
     if (
         battle.energy[playerName][index] > 100
@@ -349,7 +358,6 @@ function checkDefeat(battle, playerName) {
             );
 
     if (aliveCharacters.length === 0) {
-
         battle.finished = true;
 
         const winner =
@@ -410,7 +418,6 @@ function endTurn(battle, playerName) {
 // =========================
 
 function createBattle(matchId) {
-
     const match = matches[matchId];
 
     if (!match) {
@@ -643,6 +650,7 @@ io.on("connection", (socket) => {
                         .substring(2, 8);
 
                 matches[matchId] = {
+
                     player1:
                         challengerName,
 
@@ -753,7 +761,6 @@ io.on("connection", (socket) => {
                     if (
                         match.player1 ===
                         playerName ||
-
                         match.player2 ===
                         playerName
                     ) {
@@ -1072,7 +1079,21 @@ io.on("connection", (socket) => {
                     opponentName
                 )
             ) {
+
                 sendBattleUpdate(battle);
+
+                return;
+            }
+
+            if (
+                checkDefeat(
+                    battle,
+                    playerName
+                )
+            ) {
+
+                sendBattleUpdate(battle);
+
                 return;
             }
 
@@ -1272,7 +1293,9 @@ io.on("connection", (socket) => {
                     opponentName
                 )
             ) {
+
                 sendBattleUpdate(battle);
+
                 return;
             }
 
@@ -1282,7 +1305,9 @@ io.on("connection", (socket) => {
                     playerName
                 )
             ) {
+
                 sendBattleUpdate(battle);
+
                 return;
             }
 
@@ -1356,7 +1381,9 @@ io.on("connection", (socket) => {
                     opponentName
                 )
             ) {
+
                 sendBattleUpdate(battle);
+
                 return;
             }
 
@@ -1479,9 +1506,18 @@ io.on("connection", (socket) => {
 // START SERVER
 // =========================
 
-const PORT = process.env.PORT || 3000;
+const PORT =
+    process.env.PORT || 3000;
 
-server.listen(PORT, () => {
-    console.log("TeacherBattle is running!");
-    console.log("Running on port " + PORT);
-});
+server.listen(
+    PORT,
+    () => {
+        console.log(
+            "TeacherBattle is running!"
+        );
+
+        console.log(
+            "Running on port " + PORT
+        );
+    }
+);
