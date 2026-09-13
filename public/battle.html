@@ -200,6 +200,7 @@
         </div>
 
         <div class="stats">
+
             HP:
             <span id="myHpText">0 / 0</span>
 
@@ -229,9 +230,11 @@
                     class="bar-fill energy-fill"
                 ></div>
             </div>
+
         </div>
 
         <div class="moves">
+
             <h3>Moves</h3>
 
             <div id="moveButtons"></div>
@@ -251,6 +254,7 @@
             >
                 SWITCH CHARACTER
             </button>
+
         </div>
 
         <!-- SWITCH MENU -->
@@ -311,6 +315,7 @@
                 Cancel
             </button>
         </div>
+
     </div>
 
     <!-- OPPONENT -->
@@ -318,6 +323,7 @@
         id="opponentArea"
         class="player-area"
     >
+
         <h2>Opponent</h2>
 
         <div
@@ -328,6 +334,7 @@
         </div>
 
         <div class="stats">
+
             HP:
             <span id="opponentHpText">0 / 0</span>
 
@@ -357,19 +364,23 @@
                     class="bar-fill energy-fill"
                 ></div>
             </div>
+
         </div>
 
         <div>
             <strong>Last Move:</strong>
             <span id="opponentLastMove">None</span>
         </div>
+
     </div>
 
     <!-- BATTLE LOG -->
     <div class="battle-log">
+
         <h3>Battle Log</h3>
 
         <div id="battleLog"></div>
+
     </div>
 
 </div>
@@ -388,14 +399,6 @@ const battleId =
     sessionStorage.getItem("battleId") ||
     localStorage.getItem("battleId");
 
-if (!playerName) {
-    console.error("No player name found.");
-}
-
-if (!battleId) {
-    console.error("No battle ID found.");
-}
-
 
 // --------------------------------------------------
 // ELEMENTS
@@ -403,6 +406,12 @@ if (!battleId) {
 
 const turnDisplay =
     document.getElementById("turnDisplay");
+
+const myArea =
+    document.getElementById("myArea");
+
+const opponentArea =
+    document.getElementById("opponentArea");
 
 const myCharacter =
     document.getElementById("myCharacter");
@@ -499,9 +508,7 @@ function getMoves(character) {
                 id: "4quarters"
             }
         ];
-
     }
-
 
     if (character === "Mr. Dutlinger") {
 
@@ -519,9 +526,7 @@ function getMoves(character) {
                 id: "mtndewchuck"
             }
         ];
-
     }
-
 
     if (character === "Dr. Savic") {
 
@@ -539,9 +544,7 @@ function getMoves(character) {
                 id: "musichistoryday"
             }
         ];
-
     }
-
 
     if (character === "Mrs. Smauley") {
 
@@ -559,9 +562,7 @@ function getMoves(character) {
                 id: "detention"
             }
         ];
-
     }
-
 
     if (character === "Mrs. Aysien") {
 
@@ -579,9 +580,7 @@ function getMoves(character) {
                 id: "washingtonspeech"
             }
         ];
-
     }
-
 
     if (character === "Mr. Smauley") {
 
@@ -599,9 +598,7 @@ function getMoves(character) {
                 id: "backstab"
             }
         ];
-
     }
-
 
     return [];
 }
@@ -630,6 +627,7 @@ const specialNames = {
 
     "Mr. Smauley":
         "BACKUP"
+
 };
 
 
@@ -639,7 +637,8 @@ const specialNames = {
 
 function updateMoveButtons(
     character,
-    myTurn
+    myTurn,
+    battleFinished
 ) {
 
     moveButtons.innerHTML = "";
@@ -660,6 +659,7 @@ function updateMoveButtons(
                 move.id;
 
             button.disabled =
+                battleFinished ||
                 !myTurn;
 
             button.onclick =
@@ -672,9 +672,7 @@ function updateMoveButtons(
                     sendMove(move.id);
                 };
 
-            moveButtons.appendChild(
-                button
-            );
+            moveButtons.appendChild(button);
         }
     );
 }
@@ -724,6 +722,7 @@ function updateSwitchButtons(
                 !battle.teams[player] ||
                 !battle.teams[player][index]
             ) {
+
                 button.textContent =
                     "Empty";
 
@@ -855,21 +854,24 @@ function updateScreen(battle) {
     const myActiveIndex =
         battle.active[playerName];
 
+    if (
+        myActiveIndex === undefined ||
+        !battle.teams[playerName]
+    ) {
+        return;
+    }
+
     const myCharacterName =
-        battle.teams[playerName]
-            [myActiveIndex];
+        battle.teams[playerName][myActiveIndex];
 
     const myHp =
-        battle.hp[playerName]
-            [myActiveIndex];
+        battle.hp[playerName][myActiveIndex];
 
     const myStamina =
-        battle.stamina[playerName]
-            [myActiveIndex];
+        battle.stamina[playerName][myActiveIndex];
 
     const myEnergy =
-        battle.energy[playerName]
-            [myActiveIndex];
+        battle.energy[playerName][myActiveIndex];
 
 
     // --------------------------------------------------
@@ -879,21 +881,24 @@ function updateScreen(battle) {
     const opponentActiveIndex =
         battle.active[opponentPlayer];
 
+    if (
+        opponentActiveIndex === undefined ||
+        !battle.teams[opponentPlayer]
+    ) {
+        return;
+    }
+
     const opponentCharacterName =
-        battle.teams[opponentPlayer]
-            [opponentActiveIndex];
+        battle.teams[opponentPlayer][opponentActiveIndex];
 
     const opponentHp =
-        battle.hp[opponentPlayer]
-            [opponentActiveIndex];
+        battle.hp[opponentPlayer][opponentActiveIndex];
 
     const opponentStamina =
-        battle.stamina[opponentPlayer]
-            [opponentActiveIndex];
+        battle.stamina[opponentPlayer][opponentActiveIndex];
 
     const opponentEnergy =
-        battle.energy[opponentPlayer]
-            [opponentActiveIndex];
+        battle.energy[opponentPlayer][opponentActiveIndex];
 
 
     // --------------------------------------------------
@@ -906,14 +911,12 @@ function updateScreen(battle) {
     myHpText.textContent =
         myHp +
         " / " +
-        battle.maxHp[playerName]
-            [myActiveIndex];
+        battle.maxHP[playerName][myActiveIndex];
 
     myStaminaText.textContent =
         myStamina +
         " / " +
-        battle.maxStamina[playerName]
-            [myActiveIndex];
+        battle.maxStamina[playerName][myActiveIndex];
 
     myEnergyText.textContent =
         myEnergy +
@@ -923,15 +926,13 @@ function updateScreen(battle) {
     updateBar(
         myHpBar,
         myHp,
-        battle.maxHp[playerName]
-            [myActiveIndex]
+        battle.maxHP[playerName][myActiveIndex]
     );
 
     updateBar(
         myStaminaBar,
         myStamina,
-        battle.maxStamina[playerName]
-            [myActiveIndex]
+        battle.maxStamina[playerName][myActiveIndex]
     );
 
     updateBar(
@@ -953,14 +954,12 @@ function updateScreen(battle) {
     opponentHpText.textContent =
         opponentHp +
         " / " +
-        battle.maxHp[opponentPlayer]
-            [opponentActiveIndex];
+        battle.maxHP[opponentPlayer][opponentActiveIndex];
 
     opponentStaminaText.textContent =
         opponentStamina +
         " / " +
-        battle.maxStamina[opponentPlayer]
-            [opponentActiveIndex];
+        battle.maxStamina[opponentPlayer][opponentActiveIndex];
 
     opponentEnergyText.textContent =
         opponentEnergy +
@@ -970,15 +969,13 @@ function updateScreen(battle) {
     updateBar(
         opponentHpBar,
         opponentHp,
-        battle.maxHp[opponentPlayer]
-            [opponentActiveIndex]
+        battle.maxHP[opponentPlayer][opponentActiveIndex]
     );
 
     updateBar(
         opponentStaminaBar,
         opponentStamina,
-        battle.maxStamina[opponentPlayer]
-            [opponentActiveIndex]
+        battle.maxStamina[opponentPlayer][opponentActiveIndex]
     );
 
     updateBar(
@@ -989,17 +986,33 @@ function updateScreen(battle) {
 
 
     // --------------------------------------------------
+    // ACTIVE PLAYER AREA
+    // --------------------------------------------------
+
+    myArea.classList.toggle(
+        "active",
+        battle.turn === playerName &&
+        !battle.finished
+    );
+
+    opponentArea.classList.toggle(
+        "active",
+        battle.turn === opponentPlayer &&
+        !battle.finished
+    );
+
+
+    // --------------------------------------------------
     // TURN
     // --------------------------------------------------
 
     const myTurn =
         battle.turn === playerName;
 
-
     if (battle.finished) {
 
         turnDisplay.textContent =
-            "Battle Finished";
+            "BATTLE FINISHED";
 
     } else if (myTurn) {
 
@@ -1019,7 +1032,8 @@ function updateScreen(battle) {
 
     updateMoveButtons(
         myCharacterName,
-        myTurn
+        myTurn,
+        battle.finished
     );
 
 
@@ -1031,8 +1045,8 @@ function updateScreen(battle) {
         battle.pendingBookChoice &&
         battle.pendingBookChoice[playerName];
 
-
     specialButton.textContent =
+        specialNames[myCharacterName] ||
         "SPECIAL";
 
     specialButton.disabled =
@@ -1065,9 +1079,7 @@ function updateScreen(battle) {
     ) {
 
         opponentLastMove.textContent =
-            battle.lastMove[
-                opponentPlayer
-            ];
+            battle.lastMove[opponentPlayer];
 
     } else {
 
@@ -1077,7 +1089,7 @@ function updateScreen(battle) {
 
 
     // --------------------------------------------------
-    // IF WAITING FOR BOOK CHOICE
+    // BOOK CHOICE
     // --------------------------------------------------
 
     if (waitingForBookChoice) {
@@ -1097,11 +1109,9 @@ function updateScreen(battle) {
 
 function disableActions() {
 
-    specialButton.disabled =
-        true;
+    specialButton.disabled = true;
 
-    switchButton.disabled =
-        true;
+    switchButton.disabled = true;
 
     const buttons =
         moveButtons.querySelectorAll(
@@ -1110,9 +1120,7 @@ function disableActions() {
 
     buttons.forEach(
         (button) => {
-
-            button.disabled =
-                true;
+            button.disabled = true;
         }
     );
 }
@@ -1184,8 +1192,7 @@ specialButton.onclick =
         socket.emit(
             "specialMove",
             {
-                battleId:
-                    battleId
+                battleId: battleId
             }
         );
     };
@@ -1255,11 +1262,8 @@ document.querySelectorAll(
                 socket.emit(
                     "switchCharacter",
                     {
-                        battleId:
-                            battleId,
-
-                        index:
-                            index
+                        battleId: battleId,
+                        index: index
                     }
                 );
             };
@@ -1307,7 +1311,6 @@ socket.on(
                 data;
         }
 
-
         if (books.length === 0) {
 
             showError(
@@ -1343,11 +1346,8 @@ socket.on(
                         socket.emit(
                             "bookChoice",
                             {
-                                battleId:
-                                    battleId,
-
-                                book:
-                                    book
+                                battleId: battleId,
+                                book: book
                             }
                         );
                     };
@@ -1410,18 +1410,18 @@ socket.on(
             message
         );
 
-        // Let the next battleUpdate
-        // restore the correct buttons.
+        // The next battleUpdate
+        // will restore the correct buttons.
     }
 );
 
 
 // --------------------------------------------------
-// BATTLE FINISHED
+// BATTLE WON
 // --------------------------------------------------
 
 socket.on(
-    "battleFinished",
+    "battleWon",
     (data) => {
 
         if (
@@ -1436,9 +1436,47 @@ socket.on(
         } else {
 
             addLog(
-                "Battle finished!"
+                "YOU WON!"
             );
         }
+
+        turnDisplay.textContent =
+            "YOU WON!";
+
+        disableActions();
+
+        switchButton.disabled =
+            true;
+    }
+);
+
+
+// --------------------------------------------------
+// BATTLE LOST
+// --------------------------------------------------
+
+socket.on(
+    "battleLost",
+    (data) => {
+
+        if (
+            data &&
+            data.message
+        ) {
+
+            addLog(
+                data.message
+            );
+
+        } else {
+
+            addLog(
+                "YOU LOST!"
+            );
+        }
+
+        turnDisplay.textContent =
+            "YOU LOST!";
 
         disableActions();
 
@@ -1461,19 +1499,38 @@ socket.on(
             socket.id
         );
 
+        if (!playerName) {
+
+            showError(
+                "No player name found."
+            );
+
+            return;
+        }
+
+        if (!battleId) {
+
+            showError(
+                "No battle ID found."
+            );
+
+            return;
+        }
+
         socket.emit(
             "joinBattle",
             {
-                battleId:
-                    battleId,
-
-                playerName:
-                    playerName
+                battleId: battleId,
+                playerName: playerName
             }
         );
     }
 );
 
+
+// --------------------------------------------------
+// DISCONNECT
+// --------------------------------------------------
 
 socket.on(
     "disconnect",
