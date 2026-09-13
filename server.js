@@ -136,6 +136,12 @@ const characterStats = {
                 type: "combo",
                 healAmount: 15,
                 drainAmount: 20
+            },
+            {
+                id: "detention",
+                name: "Detention",
+                type: "healstamina",
+                amount:15
             }
         ],
         special: {
@@ -344,51 +350,37 @@ function addEnergy(battle, playerName) {
 }
 
 function checkDefeat(battle, playerName) {
-    // Any character with 0 stamina is defeated
-    for (let i = 0; i < 3; i++) {
-        if (battle.stamina[playerName][i] <= 0) {
-            battle.stamina[playerName][i] = 0;
-            battle.hp[playerName][i] = 0;
-        }
-
-        if (battle.hp[playerName][i] <= 0) {
-            battle.hp[playerName][i] = 0;
-        }
-    }
-
-    // Find all living characters
     const aliveCharacters = [];
 
+    // Find characters that are still alive
     for (let i = 0; i < 3; i++) {
         if (
             battle.hp[playerName][i] > 0 &&
             battle.stamina[playerName][i] > 0
         ) {
             aliveCharacters.push(i);
+        } else {
+            battle.hp[playerName][i] = 0;
+            battle.stamina[playerName][i] = Math.max(
+                0,
+                battle.stamina[playerName][i]
+            );
         }
     }
 
-    // No characters left = lose
+    // All characters defeated
     if (aliveCharacters.length === 0) {
         battle.finished = true;
 
-        const winner = getOpponentName(
-            battle,
-            playerName
-        );
+        const winner = getOpponentName(battle, playerName);
 
-        io.to(battle.sockets[winner]).emit(
-            "battleWon"
-        );
-
-        io.to(battle.sockets[playerName]).emit(
-            "battleLost"
-        );
+        io.to(battle.sockets[winner]).emit("battleWon");
+        io.to(battle.sockets[playerName]).emit("battleLost");
 
         return true;
     }
 
-    // If active character is defeated, switch automatically
+    // Automatically switch if active character is defeated
     const activeIndex = battle.active[playerName];
 
     if (
@@ -1409,41 +1401,30 @@ io.on("connection", (socket) => {
     // =====================
 
     socket.on(
-        "switchCharacter",
-        (data) => {
+    "switchCharacter",
+    (data) => {
 
-            const battle =
-                battles[data.battleId];
+        const battle =
+            battles[data.battleId];
 
-            if (
-                !battle ||
-                battle.finished
-            ) {
-                return;
-            }
+        if (
+            !battle ||
+            battle.finished
+        ) {
+            return;
+        }
 
-            const playerName =
-                getBattlePlayerName(
-                    battle,
-                    socket.id
-                );
+        const playerName =
+            getBattlePlayerName(
+                battle,
+                socket.id
+            );
 
-            if (!playerName) {
-                return;
-            }
+        if (!playerName) {
+            return;
+        }
 
-            if (
-                battle.turn !==
-                playerName
-            ) {
-
-                socket.emit(
-                    "battleError",
-                    "It is not your turn!"
-                );
-
-                return;
-            }
+        
 
             const index =
                 Number(data.index);
@@ -1483,10 +1464,8 @@ io.on("connection", (socket) => {
                 "!"
             );
 
-            endTurn(
-                battle,
-                playerName
-            );
+            sendBattleUpdate(battle);
+        
         }
     );
 
