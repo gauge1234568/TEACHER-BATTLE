@@ -289,35 +289,30 @@ function clampStats(battle) {
     battle.names.forEach((name) => {
         for (let i = 0; i < 3; i++) {
 
+            // Keep HP within limits
             if (battle.hp[name][i] < 0) {
                 battle.hp[name][i] = 0;
             }
 
-            if (
-                battle.hp[name][i] >
-                battle.maxHP[name][i]
-            ) {
-                battle.hp[name][i] =
-                    battle.maxHP[name][i];
+            if (battle.hp[name][i] > battle.maxHP[name][i]) {
+                battle.hp[name][i] = battle.maxHP[name][i];
             }
 
+            // Keep stamina within limits
             if (battle.stamina[name][i] < 0) {
                 battle.stamina[name][i] = 0;
             }
 
-            if (
-                battle.stamina[name][i] >
-                battle.maxStamina[name][i]
-            ) {
-                battle.stamina[name][i] =
-                    battle.maxStamina[name][i];
+            if (battle.stamina[name][i] > battle.maxStamina[name][i]) {
+                battle.stamina[name][i] = battle.maxStamina[name][i];
             }
 
-            // If stamina reaches 0, defeat the character.
+            // STAMINA REACHES 0 = CHARACTER IS DEFEATED
             if (battle.stamina[name][i] === 0) {
                 battle.hp[name][i] = 0;
             }
 
+            // Keep energy within limits
             if (battle.energy[name][i] < 0) {
                 battle.energy[name][i] = 0;
             }
@@ -333,15 +328,18 @@ function addEnergy(battle, playerName) {
     const index = battle.active[playerName];
     const character = battle.teams[playerName][index];
 
-    const energyGain =
-        character === "Mr. Sannes" ? 10 : 20;
-
-    battle.energy[playerName][index] += energyGain;
-
-    if (
-        battle.energy[playerName][index] > 100
-    ) {
-        battle.energy[playerName][index] = 100;
+    if (character === "Mr. Sannes") {
+        battle.energy[playerName][index] =
+            Math.min(
+                battle.energy[playerName][index] + 10,
+                100
+            );
+    } else {
+        battle.energy[playerName][index] =
+            Math.min(
+                battle.energy[playerName][index] + 20,
+                100
+            );
     }
 }
 
