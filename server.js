@@ -344,48 +344,60 @@ function addEnergy(battle, playerName) {
 }
 
 function checkDefeat(battle, playerName) {
-    const aliveCharacters =
-        battle.hp[playerName]
-            .map((hp, index) => ({
-                hp,
-                index
-            }))
-            .filter(
-                (character) =>
-                    character.hp > 0
-            );
+    // Any character with 0 stamina is defeated
+    for (let i = 0; i < 3; i++) {
+        if (battle.stamina[playerName][i] <= 0) {
+            battle.stamina[playerName][i] = 0;
+            battle.hp[playerName][i] = 0;
+        }
 
+        if (battle.hp[playerName][i] <= 0) {
+            battle.hp[playerName][i] = 0;
+        }
+    }
+
+    // Find all living characters
+    const aliveCharacters = [];
+
+    for (let i = 0; i < 3; i++) {
+        if (
+            battle.hp[playerName][i] > 0 &&
+            battle.stamina[playerName][i] > 0
+        ) {
+            aliveCharacters.push(i);
+        }
+    }
+
+    // No characters left = lose
     if (aliveCharacters.length === 0) {
         battle.finished = true;
 
-        const winner =
-            getOpponentName(
-                battle,
-                playerName
-            );
+        const winner = getOpponentName(
+            battle,
+            playerName
+        );
 
-        io.to(
-            battle.sockets[winner]
-        ).emit("battleWon");
+        io.to(battle.sockets[winner]).emit(
+            "battleWon"
+        );
 
-        io.to(
-            battle.sockets[playerName]
-        ).emit("battleLost");
+        io.to(battle.sockets[playerName]).emit(
+            "battleLost"
+        );
 
         return true;
     }
 
-    const activeIndex =
-        battle.active[playerName];
+    // If active character is defeated, switch automatically
+    const activeIndex = battle.active[playerName];
 
     if (
-        battle.hp[playerName][activeIndex] <= 0
+        battle.hp[playerName][activeIndex] <= 0 ||
+        battle.stamina[playerName][activeIndex] <= 0
     ) {
-        const newIndex =
-            aliveCharacters[0].index;
+        const newIndex = aliveCharacters[0];
 
-        battle.active[playerName] =
-            newIndex;
+        battle.active[playerName] = newIndex;
 
         sendBattleAction(
             battle,
