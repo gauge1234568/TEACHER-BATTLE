@@ -19,9 +19,11 @@ const battles = {};
 // =========================
 
 const characterStats = {
+
     "Mr. Sannes": {
         hp: 150,
         stamina: 100,
+
         moves: [
             {
                 id: "voicecrack",
@@ -45,6 +47,7 @@ const characterStats = {
                 amount: 10
             }
         ],
+
         special: {
             name: "GOLDEN SANNES",
             type: "damage",
@@ -55,6 +58,7 @@ const characterStats = {
     "Mr. Dutlinger": {
         hp: 250,
         stamina: 125,
+
         moves: [
             {
                 id: "marinebootcamp",
@@ -78,6 +82,7 @@ const characterStats = {
                 amount: 10
             }
         ],
+
         special: {
             name: "50 CAL. TURRET",
             type: "turret",
@@ -88,6 +93,7 @@ const characterStats = {
     "Dr. Savic": {
         hp: 150,
         stamina: 100,
+
         moves: [
             {
                 id: "guitarsmash",
@@ -111,6 +117,7 @@ const characterStats = {
                 amount: 20
             }
         ],
+
         special: {
             name: "MUSIC LISTENING TEST",
             type: "drainStamina",
@@ -121,6 +128,7 @@ const characterStats = {
     "Mrs. Smauley": {
         hp: 150,
         stamina: 100,
+
         moves: [
             {
                 id: "rulersmack",
@@ -139,11 +147,13 @@ const characterStats = {
             },
             {
                 id: "detention",
-                name: "Detention",
-                type: "healstamina",
-                amount:15
+                name: "DETENTION",
+                staminaCost: 0,
+                type: "healStamina",
+                amount: 15
             }
         ],
+
         special: {
             name: "LITERATURE BOOKS",
             type: "bookChoice"
@@ -153,6 +163,7 @@ const characterStats = {
     "Mrs. Aysien": {
         hp: 160,
         stamina: 100,
+
         moves: [
             {
                 id: "burningwhitehouse",
@@ -176,6 +187,7 @@ const characterStats = {
                 amount: 20
             }
         ],
+
         special: {
             name: "PENCIL STAB",
             type: "selfDamage",
@@ -187,6 +199,7 @@ const characterStats = {
     "Mr. Smauley": {
         hp: 160,
         stamina: 100,
+
         moves: [
             {
                 id: "mapday",
@@ -210,6 +223,7 @@ const characterStats = {
                 amount: 20
             }
         ],
+
         special: {
             name: "BACKUP",
             type: "damage",
@@ -218,11 +232,13 @@ const characterStats = {
     }
 };
 
+
 // =========================
 // HELPER FUNCTIONS
 // =========================
 
 function getPlayerName(socketId) {
+
     if (!players[socketId]) {
         return null;
     }
@@ -230,166 +246,328 @@ function getPlayerName(socketId) {
     return players[socketId].name;
 }
 
+
 function sendPlayerList() {
+
     const playerList = {};
 
-    Object.keys(players).forEach((socketId) => {
-        playerList[socketId] = players[socketId].name;
-    });
+    Object.keys(players).forEach(
+        (socketId) => {
 
-    io.emit("playerList", playerList);
-}
+            playerList[socketId] =
+                players[socketId].name;
 
-function getOpponentName(battle, playerName) {
-    return battle.names.find(
-        (name) => name !== playerName
-    );
-}
-
-function getBattlePlayerName(battle, socketId) {
-    return battle.names.find(
-        (name) => battle.sockets[name] === socketId
-    );
-}
-
-function sendBattleAction(battle, message) {
-    battle.names.forEach((name) => {
-        const socketId = battle.sockets[name];
-
-        if (socketId) {
-            io.to(socketId).emit(
-                "battleAction",
-                message
-            );
         }
-    });
+    );
+
+    io.emit(
+        "playerList",
+        playerList
+    );
 }
+
+
+function getOpponentName(
+    battle,
+    playerName
+) {
+
+    return battle.names.find(
+        (name) =>
+            name !== playerName
+    );
+}
+
+
+function getBattlePlayerName(
+    battle,
+    socketId
+) {
+
+    return battle.names.find(
+        (name) =>
+            battle.sockets[name] === socketId
+    );
+}
+
+
+function sendBattleAction(
+    battle,
+    message
+) {
+
+    battle.names.forEach(
+        (name) => {
+
+            const socketId =
+                battle.sockets[name];
+
+            if (socketId) {
+
+                io.to(socketId).emit(
+                    "battleAction",
+                    message
+                );
+
+            }
+
+        }
+    );
+}
+
 
 function sendBattleUpdate(battle) {
+
     const data = {
+
         names: battle.names,
+
         teams: battle.teams,
+
         hp: battle.hp,
+
         maxHP: battle.maxHP,
+
         stamina: battle.stamina,
+
         maxStamina: battle.maxStamina,
+
         energy: battle.energy,
+
         active: battle.active,
+
         turn: battle.turn,
+
         finished: battle.finished
+
     };
 
-    battle.names.forEach((name) => {
-        const socketId = battle.sockets[name];
 
-        if (socketId) {
-            io.to(socketId).emit(
-                "battleUpdate",
-                data
-            );
+    battle.names.forEach(
+        (name) => {
+
+            const socketId =
+                battle.sockets[name];
+
+            if (socketId) {
+
+                io.to(socketId).emit(
+                    "battleUpdate",
+                    data
+                );
+
+            }
+
         }
-    });
+    );
 }
+
+
+// =========================
+// KEEP STATS IN RANGE
+// =========================
 
 function clampStats(battle) {
-    battle.names.forEach((name) => {
-        for (let i = 0; i < 3; i++) {
 
-            // Keep HP within limits
-            if (battle.hp[name][i] < 0) {
-                battle.hp[name][i] = 0;
+    battle.names.forEach(
+        (name) => {
+
+            for (
+                let i = 0;
+                i < 3;
+                i++
+            ) {
+
+                if (
+                    battle.hp[name][i] < 0
+                ) {
+
+                    battle.hp[name][i] = 0;
+
+                }
+
+
+                if (
+                    battle.hp[name][i] >
+                    battle.maxHP[name][i]
+                ) {
+
+                    battle.hp[name][i] =
+                        battle.maxHP[name][i];
+
+                }
+
+
+                if (
+                    battle.stamina[name][i] < 0
+                ) {
+
+                    battle.stamina[name][i] = 0;
+
+                }
+
+
+                if (
+                    battle.stamina[name][i] >
+                    battle.maxStamina[name][i]
+                ) {
+
+                    battle.stamina[name][i] =
+                        battle.maxStamina[name][i];
+
+                }
+
+
+                // 0 stamina = defeated
+                if (
+                    battle.stamina[name][i] === 0
+                ) {
+
+                    battle.hp[name][i] = 0;
+
+                }
+
+
+                if (
+                    battle.energy[name][i] < 0
+                ) {
+
+                    battle.energy[name][i] = 0;
+
+                }
+
+
+                if (
+                    battle.energy[name][i] > 100
+                ) {
+
+                    battle.energy[name][i] = 100;
+
+                }
+
             }
 
-            if (battle.hp[name][i] > battle.maxHP[name][i]) {
-                battle.hp[name][i] = battle.maxHP[name][i];
-            }
-
-            // Keep stamina within limits
-            if (battle.stamina[name][i] < 0) {
-                battle.stamina[name][i] = 0;
-            }
-
-            if (battle.stamina[name][i] > battle.maxStamina[name][i]) {
-                battle.stamina[name][i] = battle.maxStamina[name][i];
-            }
-
-            // STAMINA REACHES 0 = CHARACTER IS DEFEATED
-            if (battle.stamina[name][i] === 0) {
-                battle.hp[name][i] = 0;
-            }
-
-            // Keep energy within limits
-            if (battle.energy[name][i] < 0) {
-                battle.energy[name][i] = 0;
-            }
-
-            if (battle.energy[name][i] > 100) {
-                battle.energy[name][i] = 100;
-            }
         }
-    });
+    );
 }
 
-function addEnergy(battle, playerName) {
-    const index = battle.active[playerName];
-    const character = battle.teams[playerName][index];
 
-    if (character === "Mr. Sannes") {
-        battle.energy[playerName][index] =
-            Math.min(
-                battle.energy[playerName][index] + 10,
-                100
-            );
-    } else {
-        battle.energy[playerName][index] =
-            Math.min(
-                battle.energy[playerName][index] + 20,
-                100
-            );
-    }
+// =========================
+// ENERGY
+// =========================
+
+function addEnergy(
+    battle,
+    playerName
+) {
+
+    const index =
+        battle.active[playerName];
+
+    const character =
+        battle.teams[playerName][index];
+
+    // Mr. Sannes gets +10.
+    // Everyone else gets +20.
+    const energyGain =
+        character === "Mr. Sannes"
+            ? 10
+            : 20;
+
+    battle.energy[playerName][index] =
+        Math.min(
+            battle.energy[playerName][index]
+                + energyGain,
+            100
+        );
 }
 
-function checkDefeat(battle, playerName) {
+
+// =========================
+// DEFEAT CHECK
+// =========================
+
+function checkDefeat(
+    battle,
+    playerName
+) {
+
     const aliveCharacters = [];
 
-    // Find characters that are still alive
-    for (let i = 0; i < 3; i++) {
+
+    for (
+        let i = 0;
+        i < 3;
+        i++
+    ) {
+
         if (
             battle.hp[playerName][i] > 0 &&
             battle.stamina[playerName][i] > 0
         ) {
+
             aliveCharacters.push(i);
+
         } else {
+
             battle.hp[playerName][i] = 0;
-            battle.stamina[playerName][i] = Math.max(
-                0,
-                battle.stamina[playerName][i]
-            );
+
+            battle.stamina[playerName][i] =
+                Math.max(
+                    0,
+                    battle.stamina[playerName][i]
+                );
+
         }
+
     }
 
-    // All characters defeated
-    if (aliveCharacters.length === 0) {
+
+    // All three characters defeated
+    if (
+        aliveCharacters.length === 0
+    ) {
+
         battle.finished = true;
 
-        const winner = getOpponentName(battle, playerName);
+        const winner =
+            getOpponentName(
+                battle,
+                playerName
+            );
 
-        io.to(battle.sockets[winner]).emit("battleWon");
-        io.to(battle.sockets[playerName]).emit("battleLost");
+        io.to(
+            battle.sockets[winner]
+        ).emit(
+            "battleWon"
+        );
+
+        io.to(
+            battle.sockets[playerName]
+        ).emit(
+            "battleLost"
+        );
 
         return true;
     }
 
-    // Automatically switch if active character is defeated
-    const activeIndex = battle.active[playerName];
+
+    // Automatically switch if active
+    // character is defeated.
+    const activeIndex =
+        battle.active[playerName];
+
 
     if (
         battle.hp[playerName][activeIndex] <= 0 ||
         battle.stamina[playerName][activeIndex] <= 0
     ) {
-        const newIndex = aliveCharacters[0];
 
-        battle.active[playerName] = newIndex;
+        const newIndex =
+            aliveCharacters[0];
+
+        battle.active[playerName] =
+            newIndex;
 
         sendBattleAction(
             battle,
@@ -398,12 +576,23 @@ function checkDefeat(battle, playerName) {
             battle.teams[playerName][newIndex] +
             "!"
         );
+
     }
+
 
     return false;
 }
 
-function endTurn(battle, playerName) {
+
+// =========================
+// END TURN
+// =========================
+
+function endTurn(
+    battle,
+    playerName
+) {
+
     const opponent =
         getOpponentName(
             battle,
@@ -415,22 +604,34 @@ function endTurn(battle, playerName) {
     sendBattleUpdate(battle);
 }
 
+
 // =========================
 // CREATE BATTLE
 // =========================
 
 function createBattle(matchId) {
-    const match = matches[matchId];
+
+    const match =
+        matches[matchId];
 
     if (!match) {
         return;
     }
 
-    const player1 = match.player1;
-    const player2 = match.player2;
 
-    const team1 = match.teams[player1];
-    const team2 = match.teams[player2];
+    const player1 =
+        match.player1;
+
+    const player2 =
+        match.player2;
+
+
+    const team1 =
+        match.teams[player1];
+
+    const team2 =
+        match.teams[player2];
+
 
     const battleId =
         Date.now().toString() +
@@ -438,7 +639,9 @@ function createBattle(matchId) {
             .toString(36)
             .substring(2, 8);
 
+
     battles[battleId] = {
+
         id: battleId,
 
         names: [
@@ -447,84 +650,118 @@ function createBattle(matchId) {
         ],
 
         teams: {
+
             [player1]: team1,
+
             [player2]: team2
+
         },
 
         hp: {
-            [player1]: team1.map(
-                (character) =>
-                    characterStats[character].hp
-            ),
 
-            [player2]: team2.map(
-                (character) =>
-                    characterStats[character].hp
-            )
+            [player1]:
+                team1.map(
+                    (character) =>
+                        characterStats[character].hp
+                ),
+
+            [player2]:
+                team2.map(
+                    (character) =>
+                        characterStats[character].hp
+                )
+
         },
 
         maxHP: {
-            [player1]: team1.map(
-                (character) =>
-                    characterStats[character].hp
-            ),
 
-            [player2]: team2.map(
-                (character) =>
-                    characterStats[character].hp
-            )
+            [player1]:
+                team1.map(
+                    (character) =>
+                        characterStats[character].hp
+                ),
+
+            [player2]:
+                team2.map(
+                    (character) =>
+                        characterStats[character].hp
+                )
+
         },
 
         stamina: {
-            [player1]: team1.map(
-                (character) =>
-                    characterStats[character].stamina
-            ),
 
-            [player2]: team2.map(
-                (character) =>
-                    characterStats[character].stamina
-            )
+            [player1]:
+                team1.map(
+                    (character) =>
+                        characterStats[character].stamina
+                ),
+
+            [player2]:
+                team2.map(
+                    (character) =>
+                        characterStats[character].stamina
+                )
+
         },
 
         maxStamina: {
-            [player1]: team1.map(
-                (character) =>
-                    characterStats[character].stamina
-            ),
 
-            [player2]: team2.map(
-                (character) =>
-                    characterStats[character].stamina
-            )
+            [player1]:
+                team1.map(
+                    (character) =>
+                        characterStats[character].stamina
+                ),
+
+            [player2]:
+                team2.map(
+                    (character) =>
+                        characterStats[character].stamina
+                )
+
         },
 
         energy: {
+
             [player1]: [0, 0, 0],
+
             [player2]: [0, 0, 0]
+
         },
 
         active: {
+
             [player1]: 0,
+
             [player2]: 0
+
         },
 
         sockets: {
+
             [player1]:
                 match.sockets[player1],
 
             [player2]:
                 match.sockets[player2]
+
         },
 
         turret: null,
 
+        // Tracks whether Mrs. Smauley
+        // is currently choosing a book.
+        pendingBookChoice: {},
+
         turn: player1,
 
         finished: false
+
     };
 
+
     delete matches[matchId];
+
 
     io.to(
         battles[battleId].sockets[player1]
@@ -532,6 +769,7 @@ function createBattle(matchId) {
         "startBattle",
         battleId
     );
+
 
     io.to(
         battles[battleId].sockets[player2]
@@ -541,286 +779,2472 @@ function createBattle(matchId) {
     );
 }
 
+
 // =========================
 // CONNECTION
 // =========================
 
-io.on("connection", (socket) => {
+io.on(
+    "connection",
+    (socket) => {
 
-    console.log(
-        "Player connected:",
-        socket.id
-    );
+        console.log(
+            "Player connected:",
+            socket.id
+        );
 
-    // =====================
-    // SET NAME
-    // =====================
 
-    socket.on(
-        "setName",
-        (name) => {
+        // =====================
+        // SET NAME
+        // =====================
 
-            if (
-                typeof name !== "string"
-            ) {
-                return;
-            }
-
-            name = name.trim();
-
-            if (name.length === 0) {
-                return;
-            }
-
-            players[socket.id] = {
-                name: name
-            };
-
-            console.log(
-                "Player name:",
-                name
-            );
-
-            sendPlayerList();
-        }
-    );
-
-    // =====================
-    // CHALLENGE PLAYER
-    // =====================
-
-    socket.on(
-        "challengePlayer",
-        (targetId) => {
-
-            if (!players[socket.id]) {
-                return;
-            }
-
-            if (!players[targetId]) {
-                return;
-            }
-
-            challenges[targetId] =
-                socket.id;
-
-            io.to(targetId).emit(
-                "challengeReceived",
-                players[socket.id].name
-            );
-        }
-    );
-
-    // =====================
-    // CHALLENGE RESPONSE
-    // =====================
-
-    socket.on(
-        "challengeResponse",
-        (response) => {
-
-            const challengerId =
-                challenges[socket.id];
-
-            if (!challengerId) {
-                return;
-            }
-
-            const challengerName =
-                getPlayerName(
-                    challengerId
-                );
-
-            const opponentName =
-                getPlayerName(
-                    socket.id
-                );
-
-            if (
-                !challengerName ||
-                !opponentName
-            ) {
-                return;
-            }
-
-            if (response.accepted) {
-
-                const matchId =
-                    Date.now().toString() +
-                    Math.random()
-                        .toString(36)
-                        .substring(2, 8);
-
-                matches[matchId] = {
-
-                    player1:
-                        challengerName,
-
-                    player2:
-                        opponentName,
-
-                    sockets: {
-                        [challengerName]:
-                            challengerId,
-
-                        [opponentName]:
-                            socket.id
-                    },
-
-                    teams: {},
-
-                    ready: {
-                        [challengerName]:
-                            false,
-
-                        [opponentName]:
-                            false
-                    }
-                };
-
-                io.to(
-                    challengerId
-                ).emit(
-                    "startCharacterSelection",
-                    matchId
-                );
-
-                socket.emit(
-                    "startCharacterSelection",
-                    matchId
-                );
-
-            } else {
-
-                io.to(
-                    challengerId
-                ).emit(
-                    "challengeResult",
-                    opponentName +
-                    " declined your challenge."
-                );
-            }
-
-            delete challenges[socket.id];
-        }
-    );
-
-    // =====================
-    // TEAM READY
-    // =====================
-
-    socket.on(
-        "teamReady",
-        (team) => {
-
-            const playerName =
-                getPlayerName(
-                    socket.id
-                );
-
-            if (!playerName) {
-                return;
-            }
-
-            if (
-                !Array.isArray(team) ||
-                team.length !== 3
-            ) {
-                socket.emit(
-                    "battleError",
-                    "Choose exactly 3 characters."
-                );
-
-                return;
-            }
-
-            for (
-                const character of team
-            ) {
+        socket.on(
+            "setName",
+            (name) => {
 
                 if (
-                    !characterStats[character]
+                    typeof name !== "string"
+                ) {
+                    return;
+                }
+
+                name = name.trim();
+
+                if (
+                    name.length === 0
+                ) {
+                    return;
+                }
+
+                players[socket.id] = {
+                    name: name
+                };
+
+                console.log(
+                    "Player name:",
+                    name
+                );
+
+                sendPlayerList();
+
+            }
+        );
+
+
+        // =====================
+        // CHALLENGE PLAYER
+        // =====================
+
+        socket.on(
+            "challengePlayer",
+            (targetId) => {
+
+                if (!players[socket.id]) {
+                    return;
+                }
+
+                if (!players[targetId]) {
+                    return;
+                }
+
+                challenges[targetId] =
+                    socket.id;
+
+                io.to(targetId).emit(
+                    "challengeReceived",
+                    players[socket.id].name
+                );
+
+            }
+        );
+
+
+        // =====================
+        // CHALLENGE RESPONSE
+        // =====================
+
+        socket.on(
+            "challengeResponse",
+            (response) => {
+
+                const challengerId =
+                    challenges[socket.id];
+
+                if (!challengerId) {
+                    return;
+                }
+
+
+                const challengerName =
+                    getPlayerName(
+                        challengerId
+                    );
+
+
+                const opponentName =
+                    getPlayerName(
+                        socket.id
+                    );
+
+
+                if (
+                    !challengerName ||
+                    !opponentName
+                ) {
+
+                    return;
+
+                }
+
+
+                if (response.accepted) {
+
+                    const matchId =
+                        Date.now().toString() +
+                        Math.random()
+                            .toString(36)
+                            .substring(2, 8);
+
+
+                    matches[matchId] = {
+
+                        player1:
+                            challengerName,
+
+                        player2:
+                            opponentName,
+
+                        sockets: {
+
+                            [challengerName]:
+                                challengerId,
+
+                            [opponentName]:
+                                socket.id
+
+                        },
+
+                        teams: {},
+
+                        ready: {
+
+                            [challengerName]:
+                                false,
+
+                            [opponentName]:
+                                false
+
+                        }
+
+                    };
+
+
+                    io.to(
+                        challengerId
+                    ).emit(
+                        "startCharacterSelection",
+                        matchId
+                    );
+
+
+                    socket.emit(
+                        "startCharacterSelection",
+                        matchId
+                    );
+
+                } else {
+
+                    io.to(
+                        challengerId
+                    ).emit(
+                        "challengeResult",
+                        opponentName +
+                        " declined your challenge."
+                    );
+
+                }
+
+
+                delete challenges[socket.id];
+
+            }
+        );
+
+
+        // =====================
+        // TEAM READY
+        // =====================
+
+        socket.on(
+            "teamReady",
+            (team) => {
+
+                const playerName =
+                    getPlayerName(
+                        socket.id
+                    );
+
+
+                if (!playerName) {
+                    return;
+                }
+
+
+                if (
+                    !Array.isArray(team) ||
+                    team.length !== 3
                 ) {
 
                     socket.emit(
                         "battleError",
-                        "Unknown character: " +
-                        character
+                        "Choose exactly 3 characters."
+                    );
+
+                    return;
+
+                }
+
+
+                for (
+                    const character of team
+                ) {
+
+                    if (
+                        !characterStats[character]
+                    ) {
+
+                        socket.emit(
+                            "battleError",
+                            "Unknown character: " +
+                            character
+                        );
+
+                        return;
+
+                    }
+
+                }
+
+
+                let matchId = null;
+
+
+                Object.keys(matches).forEach(
+                    (id) => {
+
+                        const match =
+                            matches[id];
+
+                        if (
+                            match.player1 ===
+                                playerName ||
+                            match.player2 ===
+                                playerName
+                        ) {
+
+                            matchId = id;
+
+                        }
+
+                    }
+                );
+
+
+                if (!matchId) {
+
+                    socket.emit(
+                        "battleError",
+                        "Match not found."
+                    );
+
+                    return;
+
+                }
+
+
+                const match =
+                    matches[matchId];
+
+
+                match.teams[playerName] =
+                    team;
+
+                match.ready[playerName] =
+                    true;
+
+                match.sockets[playerName] =
+                    socket.id;
+
+
+                socket.emit(
+                    "battleError",
+                    "Team locked in!"
+                );
+
+
+                if (
+                    match.ready[match.player1] &&
+                    match.ready[match.player2]
+                ) {
+
+                    createBattle(matchId);
+
+                }
+
+            }
+        );
+
+
+        // =====================
+        // REQUEST BATTLE
+        // =====================
+
+        socket.on(
+            "requestBattle",
+            (data) => {
+
+                if (!data) {
+                    return;
+                }
+
+
+                const battle =
+                    battles[data.battleId];
+
+
+                if (!battle) {
+
+                    socket.emit(
+                        "battleError",
+                        "Battle not found."
+                    );
+
+                    return;
+
+                }
+
+
+                if (
+                    !battle.names.includes(
+                        data.playerName
+                    )
+                ) {
+
+                    socket.emit(
+                        "battleError",
+                        "You are not in this battle."
+                    );
+
+                    return;
+
+                }
+
+
+                battle.sockets[
+                    data.playerName
+                ] = socket.id;
+
+
+                sendBattleUpdate(battle);
+
+            }
+        );
+
+
+        // =====================
+        // USE CHARACTER MOVE
+        // =====================
+
+        socket.on(
+            "useMove",
+            (data) => {
+
+                if (!data) {
+                    return;
+                }
+
+
+                const battle =
+                    battles[data.battleId];
+
+
+                if (
+                    !battle ||
+                    battle.finished
+                ) {
+
+                    return;
+
+                }
+
+
+                const playerName =
+                    getBattlePlayerName(
+                        battle,
+                        socket.id
+                    );
+
+
+                if (!playerName) {
+                    return;
+                }
+
+
+                if (
+                    battle.turn !==
+                    playerName
+                ) {
+
+                    socket.emit(
+                        "battleError",
+                        "It is not your turn!"
+                    );
+
+                    return;
+
+                }
+
+
+                const opponentName =
+                    getOpponentName(
+                        battle,
+                        playerName
+                    );
+
+
+                const myIndex =
+                    battle.active[playerName];
+
+
+                const opponentIndex =
+                    battle.active[opponentName];
+
+
+                const character =
+                    battle.teams[playerName][
+                        myIndex
+                    ];
+
+
+                const stats =
+                    characterStats[character];
+
+
+                const move =
+                    stats.moves.find(
+                        (item) =>
+                            item.id ===
+                            data.moveId
+                    );
+
+
+                if (!move) {
+
+                    socket.emit(
+                        "battleError",
+                        "This character cannot use that move."
+                    );
+
+                    return;
+
+                }
+
+
+                const staminaCost =
+                    move.staminaCost || 0;
+
+
+                if (
+                    battle.stamina[
+                        playerName
+                    ][myIndex] <
+                    staminaCost
+                ) {
+
+                    socket.emit(
+                        "battleError",
+                        "Not enough stamina!"
+                    );
+
+                    return;
+
+                }
+
+
+                battle.stamina[
+                    playerName
+                ][myIndex] -=
+                    staminaCost;
+
+
+                // DAMAGE
+                if (
+                    move.type ===
+                    "damage"
+                ) {
+
+                    battle.hp[
+                        opponentName
+                    ][opponentIndex] -=
+                        move.amount;
+
+
+                    sendBattleAction(
+                        battle,
+                        character +
+                        " used " +
+                        move.name +
+                        " for " +
+                        move.amount +
+                        " damage!"
+                    );
+
+                }
+
+
+                // DRAIN STAMINA
+                if (
+                    move.type ===
+                    "drainStamina"
+                ) {
+
+                    battle.stamina[
+                        opponentName
+                    ][opponentIndex] -=
+                        move.amount;
+
+
+                    sendBattleAction(
+                        battle,
+                        character +
+                        " used " +
+                        move.name +
+                        " and drained " +
+                        move.amount +
+                        " stamina!"
+                    );
+
+                }
+
+
+                // HEAL STAMINA
+                if (
+                    move.type ===
+                    "healStamina"
+                ) {
+
+                    battle.stamina[
+                        playerName
+                    ][myIndex] +=
+                        move.amount;
+
+
+                    sendBattleAction(
+                        battle,
+                        character +
+                        " used " +
+                        move.name +
+                        " and gained " +
+                        move.amount +
+                        " stamina!"
+                    );
+
+                }
+
+
+                // COMBO
+                if (
+                    move.type ===
+                    "combo"
+                ) {
+
+                    battle.stamina[
+                        playerName
+                    ][myIndex] +=
+                        move.healAmount;
+
+
+                    battle.stamina[
+                        opponentName
+                    ][opponentIndex] -=
+                        move.drainAmount;
+
+
+                    sendBattleAction(
+                        battle,
+                        character +
+                        " used " +
+                        move.name +
+                        "! Gained " +
+                        move.healAmount +
+                        " stamina and drained " +
+                        move.drainAmount +
+                        " stamina!"
+                    );
+
+                }
+
+
+                // DRAIN ENERGY
+                if (
+                    move.type ===
+                    "drainEnergy"
+                ) {
+
+                    battle.energy[
+                        opponentName
+                    ][opponentIndex] -=
+                        move.amount;
+
+
+                    sendBattleAction(
+                        battle,
+                        character +
+                        " used " +
+                        move.name +
+                        " and drained " +
+                        move.amount +
+                        " energy!"
+                    );
+
+                }
+
+
+                // +10 for Sannes,
+                // +20 for everyone else.
+                addEnergy(
+                    battle,
+                    playerName
+                );
+
+
+                clampStats(battle);
+
+
+                if (
+                    checkDefeat(
+                        battle,
+                        opponentName
+                    )
+                ) {
+
+                    sendBattleUpdate(battle);
+
+                    return;
+
+                }
+
+
+                if (
+                    checkDefeat(
+                        battle,
+                        playerName
+                    )
+                ) {
+
+                    sendBattleUpdate(battle);
+
+                    return;
+
+                }
+
+
+                endTurn(
+                    battle,
+                    playerName
+                );
+
+            }
+        );
+
+
+        // =====================
+        // SPECIAL
+        // =====================
+
+        socket.on(
+            "special",
+            (battleId) => {
+
+                const battle =
+                    battles[battleId];
+
+
+                if (
+                    !battle ||
+                    battle.finished
+                ) {
+
+                    return;
+
+                }
+
+
+                const playerName =
+                    getBattlePlayerName(
+                        battle,
+                        socket.id
+                    );
+
+
+                if (!playerName) {
+                    return;
+                }
+
+
+                if (
+                    battle.turn !==
+                    playerName
+                ) {
+
+                    socket.emit(
+                        "battleError",
+                        "It is not your turn!"
+                    );
+
+                    return;
+
+                }
+
+
+                const opponentName =
+                    getOpponentName(
+                        battle,
+                        playerName
+                    );
+
+
+                const myIndex =
+                    battle.active[playerName];
+
+
+                const opponentIndex =
+                    battle.active[opponentName];
+
+
+                const character =
+                    battle.teams[playerName][
+                        myIndex
+                    ];
+
+
+                const special =
+                    characterStats[character]
+                        .special;
+
+
+                if (
+                    battle.energy[
+                        playerName
+                    ][myIndex] < 100
+                ) {
+
+                    socket.emit(
+                        "battleError",
+                        "You need 100 energy!"
+                    );
+
+                    return;
+
+                }
+
+
+                // Spend the special energy.
+                battle.energy[
+                    playerName
+                ][myIndex] = 0;
+
+
+                // =====================
+                // BOOK CHOICE SPECIAL
+                // =====================
+
+                if (
+                    special.type ===
+                    "bookChoice"
+                ) {
+
+                    battle.pendingBookChoice[
+                        playerName
+                    ] = true;
+
+
+                    socket.emit(
+                        "bookChoice",
+                        {
+                            books: [
+                                "To Kill a Mockingbird",
+                                "The Great Gatsby",
+                                "Romeo and Juliet"
+                            ]
+                        }
+                    );
+
+
+                    sendBattleAction(
+                        battle,
+                        character +
+                        " activated " +
+                        special.name +
+                        "!"
+                    );
+
+
+                    sendBattleUpdate(battle);
+
+                    return;
+
+                }
+
+
+                // =====================
+                // NORMAL DAMAGE SPECIAL
+                // =====================
+
+                if (
+                    special.type ===
+                    "damage"
+                ) {
+
+                    battle.hp[
+                        opponentName
+                    ][opponentIndex] -=
+                        special.amount;
+
+
+                    sendBattleAction(
+                        battle,
+                        character +
+                        " used " +
+                        special.name +
+                        " for " +
+                        special.amount +
+                        " damage!"
+                    );
+
+                }
+
+
+                // =====================
+                // TURRET
+                // =====================
+
+                else if (
+                    special.type ===
+                    "turret"
+                ) {
+
+                    battle.hp[
+                        opponentName
+                    ][opponentIndex] -=
+                        special.amount;
+
+
+                    sendBattleAction(
+                        battle,
+                        character +
+                        " used " +
+                        special.name +
+                        " for " +
+                        special.amount +
+                        " damage!"
+                    );
+
+                }
+
+
+                // =====================
+                // DRAIN STAMINA
+                // =====================
+
+                else if (
+                    special.type ===
+                    "drainStamina"
+                ) {
+
+                    battle.stamina[
+                        opponentName
+                    ][opponentIndex] -=
+                        special.amount;
+
+
+                    sendBattleAction(
+                        battle,
+                        character +
+                        " used " +
+                        special.name +
+                        " and drained " +
+                        special.amount +
+                        " stamina!"
+                    );
+
+                }
+
+
+                // =====================
+                // SELF DAMAGE
+                // =====================
+
+                else if (
+                    special.type ===
+                    "selfDamage"
+                ) {
+
+                    battle.hp[
+                        opponentName
+                    ][opponentIndex] -=
+                        special.damage;
+
+
+                    battle.hp[
+                        playerName
+                    ][myIndex] -=
+                        special.selfDamage;
+
+
+                    sendBattleAction(
+                        battle,
+                        character +
+                        " used " +
+                        special.name +
+                        "!"
+                    );
+
+                }
+
+
+                clampStats(battle);
+
+
+                if (
+                    checkDefeat(
+                        battle,
+                        opponentName
+                    )
+                ) {
+
+                    sendBattleUpdate(battle);
+
+                    return;
+
+                }
+
+
+                if (
+                    checkDefeat(
+                        battle,
+                        playerName
+                    )
+                ) {
+
+                    sendBattleUpdate(battle);
+
+                    return;
+
+                }
+
+
+                endTurn(
+                    battle,
+                    playerName
+                );
+
+            }
+        );
+
+
+        // =====================
+        // BOOK CHOICE
+        // =====================
+
+        socket.on(
+            "bookChoice",
+            (data) => {
+
+                if (
+                    !data ||
+                    !data.battleId
+                ) {
+
+                    return;
+
+                }
+
+
+                const battle =
+                    battles[data.battleId];
+
+
+                if (
+                    !battle ||
+                    battle.finished
+                ) {
+
+                    return;
+
+                }
+
+
+                const playerName =
+                    getBattlePlayerName(
+                        battle,
+                        socket.id
+                    );
+
+
+                if (!playerName) {
+                    return;
+                }
+
+
+                // Must actually be choosing
+                // a book right now.
+                if (
+                    !battle.pendingBookChoice[
+                        playerName
+                    ]
+                ) {
+
+                    return;
+
+                }
+
+
+                // It must still be this player's turn.
+                if (
+                    battle.turn !==
+                    playerName
+                ) {
+
+                    return;
+
+                }
+
+
+                const myIndex =
+                    battle.active[playerName];
+
+
+                const character =
+                    battle.teams[playerName][
+                        myIndex
+                    ];
+
+
+                // Only Mrs. Smauley can use
+                // the Literature Books special.
+                if (
+                    character !==
+                    "Mrs. Smauley"
+                ) {
+
+                    return;
+
+                }
+
+
+                const books = [
+                    "To Kill a Mockingbird",
+                    "The Great Gatsby",
+                    "Romeo and Juliet"
+                ];
+
+
+                if (
+                    !books.includes(
+                        data.book
+                    )
+                ) {
+
+                    socket.emit(
+                        "battleError",
+                        "Invalid book choice."
+                    );
+
+                    return;
+
+                }
+
+
+                const opponentName =
+                    getOpponentName(
+                        battle,
+                        playerName
+                    );
+
+
+                const opponentIndex =
+                    battle.active[
+                        opponentName
+                    ];
+
+
+                battle.pendingBookChoice[
+                    playerName
+                ] = false;
+
+
+                battle.hp[
+                    opponentName
+                ][opponentIndex] -= 50;
+
+
+                sendBattleAction(
+                    battle,
+                    "Mrs. Smauley used " +
+                    data.book +
+                    " for 50 damage!"
+                );
+
+
+                clampStats(battle);
+
+
+                if (
+                    checkDefeat(
+                        battle,
+                        opponentName
+                    )
+                ) {
+
+                    sendBattleUpdate(battle);
+
+                    return;
+
+                }
+
+
+                if (
+                    checkDefeat(
+                        battle,
+                        playerName
+                    )
+                ) {
+
+                    sendBattleUpdate(battle);
+
+                    return;
+
+                }
+
+
+                endTurn(
+                    battle,
+                    playerName
+                );
+
+            }
+        );
+
+
+        // =====================
+        // SWITCH CHARACTER
+        // =====================
+
+        socket.on(
+            "switchCharacter",
+            (data) => {
+
+                const battle =
+                    battles[data.battleId];
+
+
+                if (
+                    !battle ||
+                    battle.finished
+                ) {
+
+                    return;
+
+                }
+
+
+                const playerName =
+                    getBattlePlayerName(
+                        battle,
+                        socket.id
+                    );
+
+
+                if (!playerName) {
+                    return;
+                }
+
+
+                const index =
+                    Number(data.index);
+
+
+                if (
+                    index < 0 ||
+                    index > 2
+                ) {
+
+                    return;
+
+                }
+
+
+                // Can always switch to a
+                // living character, regardless
+                // of whose turn it is.
+                if (
+                    battle.hp[playerName][index] <= 0 ||
+                    battle.stamina[playerName][index] <= 0
+                ) {
+
+                    socket.emit(
+                        "battleError",
+                        "That character is defeated!"
+                    );
+
+                    return;
+
+                }
+
+
+                if (
+                    battle.active[playerName] ===
+                    index
+                ) {
+
+                    return;
+
+                }
+
+
+                battle.active[playerName] =
+                    index;
+
+
+                sendBattleAction(
+                    battle,
+                    playerName +
+                    " switched to " +
+                    battle.teams[playerName][index] +
+                    "!"
+                );
+
+
+                // Switching does NOT end the turn.
+                sendBattleUpdate(battle);
+
+            }
+        );
+
+
+        // =====================
+        // DISCONNECT
+        // =====================
+
+        socket.on(
+            "disconnect",
+            () => {
+
+                console.log(
+                    "Player disconnected:",
+                    socket.id
+                );
+
+
+                delete players[
+                    socket.id
+                ];
+
+
+                sendPlayerList();
+
+            }
+        );
+
+    }
+);
+
+
+// =========================
+// START SERVER
+// =========================
+
+const PORT =
+    process.env.PORT || 3000;
+
+
+server.listen(
+    PORT,
+    () => {
+
+        console.log(
+            "TeacherBattle is running!"
+        );
+
+        console.log(
+            "Running on port " +
+            PORT
+        );
+
+    }
+);const express = require("express");
+const http = require("http");
+const path = require("path");
+const { Server } = require("socket.io");
+
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server);
+
+app.use(express.static(path.join(__dirname, "public")));
+
+const players = {};
+const challenges = {};
+const matches = {};
+const battles = {};
+
+
+// =========================
+// CHARACTER STATS AND MOVES
+// =========================
+
+const characterStats = {
+
+    "Mr. Sannes": {
+        hp: 150,
+        stamina: 100,
+
+        moves: [
+            {
+                id: "voicecrack",
+                name: "VOICECRACK",
+                staminaCost: 0,
+                type: "healStamina",
+                amount: 10
+            },
+            {
+                id: "3210",
+                name: "3210",
+                staminaCost: 7,
+                type: "damage",
+                amount: 15
+            },
+            {
+                id: "4quarters",
+                name: "4 QUARTERS",
+                staminaCost: 5,
+                type: "drainStamina",
+                amount: 10
+            }
+        ],
+
+        special: {
+            name: "GOLDEN SANNES",
+            type: "damage",
+            amount: 1000
+        }
+    },
+
+
+    "Mr. Dutlinger": {
+        hp: 250,
+        stamina: 125,
+
+        moves: [
+            {
+                id: "marinebootcamp",
+                name: "MARINE BOOTCAMP",
+                staminaCost: 5,
+                type: "drainStamina",
+                amount: 20
+            },
+            {
+                id: "hoorah",
+                name: "HOO-RAH",
+                staminaCost: 0,
+                type: "healStamina",
+                amount: 10
+            },
+            {
+                id: "mtndewchuck",
+                name: "MTN DEW CHUCK",
+                staminaCost: 0,
+                type: "damage",
+                amount: 10
+            }
+        ],
+
+        special: {
+            name: "50 CAL. TURRET",
+            type: "turret",
+            amount: 40
+        }
+    },
+
+
+    "Dr. Savic": {
+        hp: 150,
+        stamina: 100,
+
+        moves: [
+            {
+                id: "guitarsmash",
+                name: "GUITAR SMASH",
+                staminaCost: 10,
+                type: "damage",
+                amount: 15
+            },
+            {
+                id: "musicnotes",
+                name: "MUSIC NOTES",
+                staminaCost: 5,
+                type: "drainStamina",
+                amount: 10
+            },
+            {
+                id: "musichistoryday",
+                name: "MUSIC HISTORY DAY",
+                staminaCost: 0,
+                type: "healStamina",
+                amount: 20
+            }
+        ],
+
+        special: {
+            name: "MUSIC LISTENING TEST",
+            type: "drainStamina",
+            amount: 100
+        }
+    },
+
+
+    "Mrs. Smauley": {
+        hp: 150,
+        stamina: 100,
+
+        moves: [
+            {
+                id: "rulersmack",
+                name: "RULER SMACK",
+                staminaCost: 5,
+                type: "damage",
+                amount: 15
+            },
+            {
+                id: "bookminigun",
+                name: "BOOK MINIGUN",
+                staminaCost: 0,
+                type: "combo",
+                healAmount: 15,
+                drainAmount: 20
+            },
+            {
+                id: "detention",
+                name: "DETENTION",
+                staminaCost: 0,
+                type: "healStamina",
+                amount: 15
+            }
+        ],
+
+        special: {
+            name: "LITERATURE BOOKS",
+            type: "bookChoice"
+        }
+    },
+
+
+    "Mrs. Aysien": {
+        hp: 160,
+        stamina: 100,
+
+        moves: [
+            {
+                id: "burningwhitehouse",
+                name: "BURNING OF THE WHITE HOUSE",
+                staminaCost: 15,
+                type: "drainEnergy",
+                amount: 20
+            },
+            {
+                id: "guerillawarfare",
+                name: "GUERILLA WARFARE",
+                staminaCost: 10,
+                type: "damage",
+                amount: 15
+            },
+            {
+                id: "washingtonspeech",
+                name: "WASHINGTON'S SPEECH",
+                staminaCost: 0,
+                type: "healStamina",
+                amount: 20
+            }
+        ],
+
+        special: {
+            name: "PENCIL STAB",
+            type: "selfDamage",
+            damage: 75,
+            selfDamage: 10
+        }
+    },
+
+
+    "Mr. Smauley": {
+        hp: 160,
+        stamina: 100,
+
+        moves: [
+            {
+                id: "mapday",
+                name: "MAP DAY",
+                staminaCost: 0,
+                type: "healStamina",
+                amount: 10
+            },
+            {
+                id: "augustuscharm",
+                name: "AUGUSTUS' CHARM",
+                staminaCost: 5,
+                type: "drainStamina",
+                amount: 15
+            },
+            {
+                id: "backstab",
+                name: "BACKSTAB",
+                staminaCost: 10,
+                type: "damage",
+                amount: 20
+            }
+        ],
+
+        special: {
+            name: "BACKUP",
+            type: "damage",
+            amount: 99
+        }
+    }
+};
+
+
+// =========================
+// BOOKS
+// =========================
+
+const literatureBooks = [
+    "To Kill a Mockingbird",
+    "The Great Gatsby",
+    "Romeo and Juliet"
+];
+
+
+// =========================
+// HELPER FUNCTIONS
+// =========================
+
+function getPlayerName(socketId) {
+
+    if (!players[socketId]) {
+        return null;
+    }
+
+    return players[socketId].name;
+}
+
+
+function sendPlayerList() {
+
+    const playerList = {};
+
+    Object.keys(players).forEach(
+        (socketId) => {
+
+            playerList[socketId] =
+                players[socketId].name;
+        }
+    );
+
+    io.emit(
+        "playerList",
+        playerList
+    );
+}
+
+
+function getOpponentName(
+    battle,
+    playerName
+) {
+
+    return battle.names.find(
+        (name) =>
+            name !== playerName
+    );
+}
+
+
+function getBattlePlayerName(
+    battle,
+    socketId
+) {
+
+    return battle.names.find(
+        (name) =>
+            battle.sockets[name] === socketId
+    );
+}
+
+
+function sendBattleAction(
+    battle,
+    message
+) {
+
+    battle.names.forEach(
+        (name) => {
+
+            const socketId =
+                battle.sockets[name];
+
+            if (socketId) {
+
+                io.to(socketId).emit(
+                    "battleAction",
+                    message
+                );
+            }
+        }
+    );
+}
+
+
+function sendBattleUpdate(battle) {
+
+    const data = {
+
+        names: battle.names,
+
+        teams: battle.teams,
+
+        hp: battle.hp,
+
+        maxHP: battle.maxHP,
+
+        stamina: battle.stamina,
+
+        maxStamina: battle.maxStamina,
+
+        energy: battle.energy,
+
+        active: battle.active,
+
+        turn: battle.turn,
+
+        finished: battle.finished,
+
+        lastMove: battle.lastMove,
+
+        pendingBookChoice:
+            battle.pendingBookChoice
+    };
+
+
+    battle.names.forEach(
+        (name) => {
+
+            const socketId =
+                battle.sockets[name];
+
+            if (socketId) {
+
+                io.to(socketId).emit(
+                    "battleUpdate",
+                    data
+                );
+            }
+        }
+    );
+}
+
+
+// =========================
+// KEEP STATS IN RANGE
+// =========================
+
+function clampStats(battle) {
+
+    battle.names.forEach(
+        (name) => {
+
+            for (
+                let i = 0;
+                i < 3;
+                i++
+            ) {
+
+                if (
+                    battle.hp[name][i] < 0
+                ) {
+
+                    battle.hp[name][i] = 0;
+                }
+
+
+                if (
+                    battle.hp[name][i] >
+                    battle.maxHP[name][i]
+                ) {
+
+                    battle.hp[name][i] =
+                        battle.maxHP[name][i];
+                }
+
+
+                if (
+                    battle.stamina[name][i] < 0
+                ) {
+
+                    battle.stamina[name][i] = 0;
+                }
+
+
+                if (
+                    battle.stamina[name][i] >
+                    battle.maxStamina[name][i]
+                ) {
+
+                    battle.stamina[name][i] =
+                        battle.maxStamina[name][i];
+                }
+
+
+                // 0 stamina = defeated
+
+                if (
+                    battle.stamina[name][i] === 0
+                ) {
+
+                    battle.hp[name][i] = 0;
+                }
+
+
+                if (
+                    battle.energy[name][i] < 0
+                ) {
+
+                    battle.energy[name][i] = 0;
+                }
+
+
+                if (
+                    battle.energy[name][i] > 100
+                ) {
+
+                    battle.energy[name][i] = 100;
+                }
+            }
+        }
+    );
+}
+
+
+// =========================
+// ENERGY
+// =========================
+
+function addEnergy(
+    battle,
+    playerName
+) {
+
+    const index =
+        battle.active[playerName];
+
+    const character =
+        battle.teams[playerName][index];
+
+
+    // Mr. Sannes gets +10.
+    // Everyone else gets +20.
+
+    const energyGain =
+        character === "Mr. Sannes"
+            ? 10
+            : 20;
+
+
+    battle.energy[playerName][index] =
+        Math.min(
+            battle.energy[playerName][index]
+                + energyGain,
+            100
+        );
+}
+
+
+// =========================
+// DEFEAT CHECK
+// =========================
+
+function checkDefeat(
+    battle,
+    playerName
+) {
+
+    const aliveCharacters = [];
+
+
+    for (
+        let i = 0;
+        i < 3;
+        i++
+    ) {
+
+        if (
+            battle.hp[playerName][i] > 0 &&
+            battle.stamina[playerName][i] > 0
+        ) {
+
+            aliveCharacters.push(i);
+
+        } else {
+
+            battle.hp[playerName][i] = 0;
+
+            battle.stamina[playerName][i] =
+                Math.max(
+                    0,
+                    battle.stamina[playerName][i]
+                );
+        }
+    }
+
+
+    // All three characters defeated
+
+    if (
+        aliveCharacters.length === 0
+    ) {
+
+        battle.finished = true;
+
+        const winner =
+            getOpponentName(
+                battle,
+                playerName
+            );
+
+
+        if (
+            battle.sockets[winner]
+        ) {
+
+            io.to(
+                battle.sockets[winner]
+            ).emit(
+                "battleWon"
+            );
+        }
+
+
+        if (
+            battle.sockets[playerName]
+        ) {
+
+            io.to(
+                battle.sockets[playerName]
+            ).emit(
+                "battleLost"
+            );
+        }
+
+
+        sendBattleAction(
+            battle,
+            playerName +
+            " has been defeated!"
+        );
+
+        return true;
+    }
+
+
+    // Automatically switch if active
+    // character is defeated.
+
+    const activeIndex =
+        battle.active[playerName];
+
+
+    if (
+        battle.hp[playerName][activeIndex] <= 0 ||
+        battle.stamina[playerName][activeIndex] <= 0
+    ) {
+
+        const newIndex =
+            aliveCharacters[0];
+
+        battle.active[playerName] =
+            newIndex;
+
+
+        sendBattleAction(
+            battle,
+            playerName +
+            " was automatically switched to " +
+            battle.teams[playerName][newIndex] +
+            "!"
+        );
+    }
+
+
+    return false;
+}
+
+
+// =========================
+// END TURN
+// =========================
+
+function endTurn(
+    battle,
+    playerName
+) {
+
+    const opponent =
+        getOpponentName(
+            battle,
+            playerName
+        );
+
+    battle.turn = opponent;
+
+    sendBattleUpdate(battle);
+}
+
+
+// =========================
+// CREATE BATTLE
+// =========================
+
+function createBattle(matchId) {
+
+    const match =
+        matches[matchId];
+
+    if (!match) {
+        return;
+    }
+
+
+    const player1 =
+        match.player1;
+
+    const player2 =
+        match.player2;
+
+
+    const team1 =
+        match.teams[player1];
+
+    const team2 =
+        match.teams[player2];
+
+
+    const battleId =
+        Date.now().toString() +
+        Math.random()
+            .toString(36)
+            .substring(2, 8);
+
+
+    battles[battleId] = {
+
+        id: battleId,
+
+        names: [
+            player1,
+            player2
+        ],
+
+
+        teams: {
+
+            [player1]:
+                team1,
+
+            [player2]:
+                team2
+        },
+
+
+        hp: {
+
+            [player1]:
+                team1.map(
+                    (character) =>
+                        characterStats[character].hp
+                ),
+
+            [player2]:
+                team2.map(
+                    (character) =>
+                        characterStats[character].hp
+                )
+        },
+
+
+        maxHP: {
+
+            [player1]:
+                team1.map(
+                    (character) =>
+                        characterStats[character].hp
+                ),
+
+            [player2]:
+                team2.map(
+                    (character) =>
+                        characterStats[character].hp
+                )
+        },
+
+
+        stamina: {
+
+            [player1]:
+                team1.map(
+                    (character) =>
+                        characterStats[character].stamina
+                ),
+
+            [player2]:
+                team2.map(
+                    (character) =>
+                        characterStats[character].stamina
+                )
+        },
+
+
+        maxStamina: {
+
+            [player1]:
+                team1.map(
+                    (character) =>
+                        characterStats[character].stamina
+                ),
+
+            [player2]:
+                team2.map(
+                    (character) =>
+                        characterStats[character].stamina
+                )
+        },
+
+
+        energy: {
+
+            [player1]: [0, 0, 0],
+
+            [player2]: [0, 0, 0]
+        },
+
+
+        active: {
+
+            [player1]: 0,
+
+            [player2]: 0
+        },
+
+
+        sockets: {
+
+            [player1]:
+                match.sockets[player1],
+
+            [player2]:
+                match.sockets[player2]
+        },
+
+
+        lastMove: {
+
+            [player1]: "None",
+
+            [player2]: "None"
+        },
+
+
+        pendingBookChoice: {
+
+            [player1]: false,
+
+            [player2]: false
+        },
+
+
+        turn: player1,
+
+        finished: false
+    };
+
+
+    delete matches[matchId];
+
+
+    io.to(
+        battles[battleId].sockets[player1]
+    ).emit(
+        "startBattle",
+        battleId
+    );
+
+
+    io.to(
+        battles[battleId].sockets[player2]
+    ).emit(
+        "startBattle",
+        battleId
+    );
+
+
+    sendBattleUpdate(
+        battles[battleId]
+    );
+}
+
+
+// =========================
+// CONNECTION
+// =========================
+
+io.on(
+    "connection",
+    (socket) => {
+
+        console.log(
+            "Player connected:",
+            socket.id
+        );
+
+
+        // =====================
+        // SET NAME
+        // =====================
+
+        socket.on(
+            "setName",
+            (name) => {
+
+                if (
+                    typeof name !== "string"
+                ) {
+                    return;
+                }
+
+
+                name =
+                    name.trim();
+
+
+                if (
+                    name.length === 0
+                ) {
+                    return;
+                }
+
+
+                players[socket.id] = {
+                    name: name
+                };
+
+
+                console.log(
+                    "Player name:",
+                    name
+                );
+
+
+                sendPlayerList();
+            }
+        );
+
+
+        // =====================
+        // CHALLENGE PLAYER
+        // =====================
+
+        socket.on(
+            "challengePlayer",
+            (targetId) => {
+
+                if (
+                    !players[socket.id]
+                ) {
+                    return;
+                }
+
+
+                if (
+                    !players[targetId]
+                ) {
+                    return;
+                }
+
+
+                challenges[targetId] =
+                    socket.id;
+
+
+                io.to(targetId).emit(
+                    "challengeReceived",
+                    players[socket.id].name
+                );
+            }
+        );
+
+
+        // =====================
+        // CHALLENGE RESPONSE
+        // =====================
+
+        socket.on(
+            "challengeResponse",
+            (response) => {
+
+                const challengerId =
+                    challenges[socket.id];
+
+
+                if (!challengerId) {
+                    return;
+                }
+
+
+                const challengerName =
+                    getPlayerName(
+                        challengerId
+                    );
+
+
+                const opponentName =
+                    getPlayerName(
+                        socket.id
+                    );
+
+
+                if (
+                    !challengerName ||
+                    !opponentName
+                ) {
+                    return;
+                }
+
+
+                if (
+                    response &&
+                    response.accepted
+                ) {
+
+                    const matchId =
+                        Date.now().toString() +
+                        Math.random()
+                            .toString(36)
+                            .substring(2, 8);
+
+
+                    matches[matchId] = {
+
+                        player1:
+                            challengerName,
+
+                        player2:
+                            opponentName,
+
+
+                        sockets: {
+
+                            [challengerName]:
+                                challengerId,
+
+                            [opponentName]:
+                                socket.id
+                        },
+
+
+                        teams: {},
+
+
+                        ready: {
+
+                            [challengerName]:
+                                false,
+
+                            [opponentName]:
+                                false
+                        }
+                    };
+
+
+                    io.to(
+                        challengerId
+                    ).emit(
+                        "startCharacterSelection",
+                        matchId
+                    );
+
+
+                    socket.emit(
+                        "startCharacterSelection",
+                        matchId
+                    );
+
+                } else {
+
+                    io.to(
+                        challengerId
+                    ).emit(
+                        "challengeResult",
+                        opponentName +
+                        " declined your challenge."
+                    );
+                }
+
+
+                delete challenges[socket.id];
+            }
+        );
+
+
+        // =====================
+        // TEAM READY
+        // =====================
+
+        socket.on(
+            "teamReady",
+            (team) => {
+
+                const playerName =
+                    getPlayerName(
+                        socket.id
+                    );
+
+
+                if (!playerName) {
+                    return;
+                }
+
+
+                if (
+                    !Array.isArray(team) ||
+                    team.length !== 3
+                ) {
+
+                    socket.emit(
+                        "battleError",
+                        "Choose exactly 3 characters."
                     );
 
                     return;
                 }
-            }
 
-            let matchId = null;
 
-            Object.keys(matches).forEach(
-                (id) => {
-
-                    const match =
-                        matches[id];
+                for (
+                    const character of team
+                ) {
 
                     if (
-                        match.player1 ===
-                        playerName ||
-                        match.player2 ===
-                        playerName
+                        !characterStats[character]
                     ) {
-                        matchId = id;
+
+                        socket.emit(
+                            "battleError",
+                            "Unknown character: " +
+                            character
+                        );
+
+                        return;
                     }
                 }
-            );
 
-            if (!matchId) {
+
+                let matchId = null;
+
+
+                Object.keys(matches).forEach(
+                    (id) => {
+
+                        const match =
+                            matches[id];
+
+
+                        if (
+                            match.player1 ===
+                                playerName ||
+                            match.player2 ===
+                                playerName
+                        ) {
+
+                            matchId = id;
+                        }
+                    }
+                );
+
+
+                if (!matchId) {
+
+                    socket.emit(
+                        "battleError",
+                        "Match not found."
+                    );
+
+                    return;
+                }
+
+
+                const match =
+                    matches[matchId];
+
+
+                match.teams[playerName] =
+                    team;
+
+                match.ready[playerName] =
+                    true;
+
+                match.sockets[playerName] =
+                    socket.id;
+
 
                 socket.emit(
                     "battleError",
-                    "Match not found."
+                    "Team locked in!"
                 );
 
-                return;
+
+                if (
+                    match.ready[match.player1] &&
+                    match.ready[match.player2]
+                ) {
+
+                    createBattle(matchId);
+                }
             }
+        );
 
-            const match =
-                matches[matchId];
 
-            match.teams[playerName] =
-                team;
+        // =====================
+        // JOIN / REQUEST BATTLE
+        // =====================
 
-            match.ready[playerName] =
-                true;
-
-            match.sockets[playerName] =
-                socket.id;
-
-            socket.emit(
-                "battleError",
-                "Team locked in!"
-            );
-
-            if (
-                match.ready[match.player1] &&
-                match.ready[match.player2]
-            ) {
-                createBattle(matchId);
-            }
-        }
-    );
-
-    // =====================
-    // REQUEST BATTLE
-    // =====================
-
-    socket.on(
-        "requestBattle",
-        (data) => {
+        function joinBattleHandler(data) {
 
             if (!data) {
                 return;
             }
 
+
             const battle =
                 battles[data.battleId];
+
 
             if (!battle) {
 
@@ -832,9 +3256,16 @@ io.on("connection", (socket) => {
                 return;
             }
 
+
+            const requestedName =
+                data.playerName ||
+                getPlayerName(socket.id);
+
+
             if (
+                !requestedName ||
                 !battle.names.includes(
-                    data.playerName
+                    requestedName
                 )
             ) {
 
@@ -846,28 +3277,44 @@ io.on("connection", (socket) => {
                 return;
             }
 
+
             battle.sockets[
-                data.playerName
+                requestedName
             ] = socket.id;
 
-            sendBattleUpdate(battle);
+
+            sendBattleUpdate(
+                battle
+            );
         }
-    );
 
-    // =====================
-    // USE CHARACTER MOVE
-    // =====================
 
-    socket.on(
-        "useMove",
-        (data) => {
+        socket.on(
+            "joinBattle",
+            joinBattleHandler
+        );
+
+
+        socket.on(
+            "requestBattle",
+            joinBattleHandler
+        );
+
+
+        // =====================
+        // USE CHARACTER MOVE
+        // =====================
+
+        function useMoveHandler(data) {
 
             if (!data) {
                 return;
             }
 
+
             const battle =
                 battles[data.battleId];
+
 
             if (
                 !battle ||
@@ -876,15 +3323,18 @@ io.on("connection", (socket) => {
                 return;
             }
 
+
             const playerName =
                 getBattlePlayerName(
                     battle,
                     socket.id
                 );
 
+
             if (!playerName) {
                 return;
             }
+
 
             if (
                 battle.turn !==
@@ -899,32 +3349,57 @@ io.on("connection", (socket) => {
                 return;
             }
 
+
+            if (
+                battle.pendingBookChoice[playerName]
+            ) {
+
+                socket.emit(
+                    "battleError",
+                    "Choose a book first!"
+                );
+
+                return;
+            }
+
+
             const opponentName =
                 getOpponentName(
                     battle,
                     playerName
                 );
 
+
             const myIndex =
                 battle.active[playerName];
 
+
             const opponentIndex =
                 battle.active[opponentName];
+
 
             const character =
                 battle.teams[playerName][
                     myIndex
                 ];
 
+
             const stats =
                 characterStats[character];
+
+
+            const moveId =
+                data.move ||
+                data.moveId;
+
 
             const move =
                 stats.moves.find(
                     (item) =>
                         item.id ===
-                        data.moveId
+                        moveId
                 );
+
 
             if (!move) {
 
@@ -936,11 +3411,16 @@ io.on("connection", (socket) => {
                 return;
             }
 
+
+            const staminaCost =
+                move.staminaCost || 0;
+
+
             if (
                 battle.stamina[
                     playerName
                 ][myIndex] <
-                move.staminaCost
+                staminaCost
             ) {
 
                 socket.emit(
@@ -951,10 +3431,14 @@ io.on("connection", (socket) => {
                 return;
             }
 
+
             battle.stamina[
                 playerName
             ][myIndex] -=
-                move.staminaCost;
+                staminaCost;
+
+
+            // DAMAGE
 
             if (
                 move.type ===
@@ -965,6 +3449,7 @@ io.on("connection", (socket) => {
                     opponentName
                 ][opponentIndex] -=
                     move.amount;
+
 
                 sendBattleAction(
                     battle,
@@ -977,7 +3462,10 @@ io.on("connection", (socket) => {
                 );
             }
 
-            if (
+
+            // DRAIN STAMINA
+
+            else if (
                 move.type ===
                 "drainStamina"
             ) {
@@ -986,6 +3474,7 @@ io.on("connection", (socket) => {
                     opponentName
                 ][opponentIndex] -=
                     move.amount;
+
 
                 sendBattleAction(
                     battle,
@@ -998,7 +3487,10 @@ io.on("connection", (socket) => {
                 );
             }
 
-            if (
+
+            // HEAL STAMINA
+
+            else if (
                 move.type ===
                 "healStamina"
             ) {
@@ -1007,6 +3499,7 @@ io.on("connection", (socket) => {
                     playerName
                 ][myIndex] +=
                     move.amount;
+
 
                 sendBattleAction(
                     battle,
@@ -1019,7 +3512,10 @@ io.on("connection", (socket) => {
                 );
             }
 
-            if (
+
+            // COMBO
+
+            else if (
                 move.type ===
                 "combo"
             ) {
@@ -1029,10 +3525,12 @@ io.on("connection", (socket) => {
                 ][myIndex] +=
                     move.healAmount;
 
+
                 battle.stamina[
                     opponentName
                 ][opponentIndex] -=
                     move.drainAmount;
+
 
                 sendBattleAction(
                     battle,
@@ -1047,7 +3545,10 @@ io.on("connection", (socket) => {
                 );
             }
 
-            if (
+
+            // DRAIN ENERGY
+
+            else if (
                 move.type ===
                 "drainEnergy"
             ) {
@@ -1056,6 +3557,7 @@ io.on("connection", (socket) => {
                     opponentName
                 ][opponentIndex] -=
                     move.amount;
+
 
                 sendBattleAction(
                     battle,
@@ -1068,12 +3570,25 @@ io.on("connection", (socket) => {
                 );
             }
 
+
+            // ENERGY
+
             addEnergy(
                 battle,
                 playerName
             );
 
+
+            // LAST MOVE
+
+            battle.lastMove[playerName] =
+                move.name;
+
+
             clampStats(battle);
+
+
+            // CHECK OPPONENT
 
             if (
                 checkDefeat(
@@ -1082,10 +3597,15 @@ io.on("connection", (socket) => {
                 )
             ) {
 
-                sendBattleUpdate(battle);
+                sendBattleUpdate(
+                    battle
+                );
 
                 return;
             }
+
+
+            // CHECK PLAYER
 
             if (
                 checkDefeat(
@@ -1094,28 +3614,42 @@ io.on("connection", (socket) => {
                 )
             ) {
 
-                sendBattleUpdate(battle);
+                sendBattleUpdate(
+                    battle
+                );
 
                 return;
             }
+
 
             endTurn(
                 battle,
                 playerName
             );
         }
-    );
 
-    // =====================
-    // SPECIAL
-    // =====================
 
-    socket.on(
-        "special",
-        (battleId) => {
+        socket.on(
+            "battleMove",
+            useMoveHandler
+        );
+
+
+        socket.on(
+            "useMove",
+            useMoveHandler
+        );
+
+
+        // =====================
+        // SPECIAL
+        // =====================
+
+        function specialHandler(battleId) {
 
             const battle =
                 battles[battleId];
+
 
             if (
                 !battle ||
@@ -1124,15 +3658,18 @@ io.on("connection", (socket) => {
                 return;
             }
 
+
             const playerName =
                 getBattlePlayerName(
                     battle,
                     socket.id
                 );
 
+
             if (!playerName) {
                 return;
             }
+
 
             if (
                 battle.turn !==
@@ -1147,26 +3684,45 @@ io.on("connection", (socket) => {
                 return;
             }
 
+
+            if (
+                battle.pendingBookChoice[playerName]
+            ) {
+
+                socket.emit(
+                    "battleError",
+                    "Choose a book first!"
+                );
+
+                return;
+            }
+
+
             const opponentName =
                 getOpponentName(
                     battle,
                     playerName
                 );
 
+
             const myIndex =
                 battle.active[playerName];
 
+
             const opponentIndex =
                 battle.active[opponentName];
+
 
             const character =
                 battle.teams[playerName][
                     myIndex
                 ];
 
+
             const special =
                 characterStats[character]
                     .special;
+
 
             if (
                 battle.energy[
@@ -1182,9 +3738,57 @@ io.on("connection", (socket) => {
                 return;
             }
 
+
+            // Spend special energy.
+
             battle.energy[
                 playerName
             ][myIndex] = 0;
+
+
+            // =====================
+            // BOOK CHOICE
+            // =====================
+
+            if (
+                special.type ===
+                "bookChoice"
+            ) {
+
+                battle.pendingBookChoice[
+                    playerName
+                ] = true;
+
+
+                sendBattleAction(
+                    battle,
+                    character +
+                    " activated " +
+                    special.name +
+                    "!"
+                );
+
+
+                socket.emit(
+                    "bookChoice",
+                    {
+                        books:
+                            literatureBooks
+                    }
+                );
+
+
+                sendBattleUpdate(
+                    battle
+                );
+
+                return;
+            }
+
+
+            // =====================
+            // DAMAGE
+            // =====================
 
             if (
                 special.type ===
@@ -1196,6 +3800,7 @@ io.on("connection", (socket) => {
                 ][opponentIndex] -=
                     special.amount;
 
+
                 sendBattleAction(
                     battle,
                     character +
@@ -1206,6 +3811,11 @@ io.on("connection", (socket) => {
                     " damage!"
                 );
             }
+
+
+            // =====================
+            // TURRET
+            // =====================
 
             else if (
                 special.type ===
@@ -1217,6 +3827,7 @@ io.on("connection", (socket) => {
                 ][opponentIndex] -=
                     special.amount;
 
+
                 sendBattleAction(
                     battle,
                     character +
@@ -1228,6 +3839,11 @@ io.on("connection", (socket) => {
                 );
             }
 
+
+            // =====================
+            // DRAIN STAMINA
+            // =====================
+
             else if (
                 special.type ===
                 "drainStamina"
@@ -1237,6 +3853,7 @@ io.on("connection", (socket) => {
                     opponentName
                 ][opponentIndex] -=
                     special.amount;
+
 
                 sendBattleAction(
                     battle,
@@ -1249,6 +3866,11 @@ io.on("connection", (socket) => {
                 );
             }
 
+
+            // =====================
+            // SELF DAMAGE
+            // =====================
+
             else if (
                 special.type ===
                 "selfDamage"
@@ -1259,10 +3881,12 @@ io.on("connection", (socket) => {
                 ][opponentIndex] -=
                     special.damage;
 
+
                 battle.hp[
                     playerName
                 ][myIndex] -=
                     special.selfDamage;
+
 
                 sendBattleAction(
                     battle,
@@ -1273,21 +3897,13 @@ io.on("connection", (socket) => {
                 );
             }
 
-            else if (
-                special.type ===
-                "bookChoice"
-            ) {
 
-                socket.emit(
-                    "bookChoice"
-                );
+            battle.lastMove[playerName] =
+                special.name;
 
-                sendBattleUpdate(battle);
-
-                return;
-            }
 
             clampStats(battle);
+
 
             if (
                 checkDefeat(
@@ -1296,10 +3912,13 @@ io.on("connection", (socket) => {
                 )
             ) {
 
-                sendBattleUpdate(battle);
+                sendBattleUpdate(
+                    battle
+                );
 
                 return;
             }
+
 
             if (
                 checkDefeat(
@@ -1308,188 +3927,357 @@ io.on("connection", (socket) => {
                 )
             ) {
 
-                sendBattleUpdate(battle);
+                sendBattleUpdate(
+                    battle
+                );
 
                 return;
             }
+
 
             endTurn(
                 battle,
                 playerName
             );
         }
-    );
 
-    // =====================
-    // BOOK CHOICE
-    // =====================
 
-    socket.on(
-        "bookChoice",
-        (data) => {
+        socket.on(
+            "specialMove",
+            specialHandler
+        );
 
-            const battle =
-                battles[data.battleId];
 
-            if (
-                !battle ||
-                battle.finished
-            ) {
-                return;
-            }
+        socket.on(
+            "special",
+            specialHandler
+        );
 
-            const playerName =
-                getBattlePlayerName(
+
+        // =====================
+        // BOOK CHOICE
+        // =====================
+
+        socket.on(
+            "bookChoice",
+            (data) => {
+
+                if (
+                    !data ||
+                    !data.battleId
+                ) {
+                    return;
+                }
+
+
+                const battle =
+                    battles[data.battleId];
+
+
+                if (
+                    !battle ||
+                    battle.finished
+                ) {
+                    return;
+                }
+
+
+                const playerName =
+                    getBattlePlayerName(
+                        battle,
+                        socket.id
+                    );
+
+
+                if (!playerName) {
+                    return;
+                }
+
+
+                if (
+                    !battle.pendingBookChoice[
+                        playerName
+                    ]
+                ) {
+
+                    socket.emit(
+                        "battleError",
+                        "You are not choosing a book."
+                    );
+
+                    return;
+                }
+
+
+                if (
+                    battle.turn !==
+                    playerName
+                ) {
+
+                    socket.emit(
+                        "battleError",
+                        "It is not your turn!"
+                    );
+
+                    return;
+                }
+
+
+                const myIndex =
+                    battle.active[playerName];
+
+
+                const character =
+                    battle.teams[playerName][
+                        myIndex
+                    ];
+
+
+                if (
+                    character !==
+                    "Mrs. Smauley"
+                ) {
+                    return;
+                }
+
+
+                if (
+                    !literatureBooks.includes(
+                        data.book
+                    )
+                ) {
+
+                    socket.emit(
+                        "battleError",
+                        "Invalid book choice."
+                    );
+
+                    return;
+                }
+
+
+                const opponentName =
+                    getOpponentName(
+                        battle,
+                        playerName
+                    );
+
+
+                const opponentIndex =
+                    battle.active[
+                        opponentName
+                    ];
+
+
+                battle.pendingBookChoice[
+                    playerName
+                ] = false;
+
+
+                battle.hp[
+                    opponentName
+                ][opponentIndex] -= 50;
+
+
+                battle.lastMove[playerName] =
+                    data.book;
+
+
+                sendBattleAction(
                     battle,
+                    "Mrs. Smauley used " +
+                    data.book +
+                    " for 50 damage!"
+                );
+
+
+                clampStats(battle);
+
+
+                if (
+                    checkDefeat(
+                        battle,
+                        opponentName
+                    )
+                ) {
+
+                    sendBattleUpdate(
+                        battle
+                    );
+
+                    return;
+                }
+
+
+                if (
+                    checkDefeat(
+                        battle,
+                        playerName
+                    )
+                ) {
+
+                    sendBattleUpdate(
+                        battle
+                    );
+
+                    return;
+                }
+
+
+                endTurn(
+                    battle,
+                    playerName
+                );
+            }
+        );
+
+
+        // =====================
+        // SWITCH CHARACTER
+        // =====================
+
+        socket.on(
+            "switchCharacter",
+            (data) => {
+
+                if (!data) {
+                    return;
+                }
+
+
+                const battle =
+                    battles[data.battleId];
+
+
+                if (
+                    !battle ||
+                    battle.finished
+                ) {
+                    return;
+                }
+
+
+                const playerName =
+                    getBattlePlayerName(
+                        battle,
+                        socket.id
+                    );
+
+
+                if (!playerName) {
+                    return;
+                }
+
+
+                const index =
+                    Number(data.index);
+
+
+                if (
+                    index < 0 ||
+                    index > 2 ||
+                    !Number.isInteger(index)
+                ) {
+                    return;
+                }
+
+
+                // Switching is ALWAYS allowed,
+                // even when it is the opponent's turn.
+
+                if (
+                    battle.hp[playerName][index] <= 0 ||
+                    battle.stamina[playerName][index] <= 0
+                ) {
+
+                    socket.emit(
+                        "battleError",
+                        "That character is defeated!"
+                    );
+
+                    return;
+                }
+
+
+                if (
+                    battle.active[playerName] ===
+                    index
+                ) {
+
+                    socket.emit(
+                        "battleError",
+                        "That character is already active!"
+                    );
+
+                    return;
+                }
+
+
+                // Don't allow switching
+                // while waiting for a book choice.
+
+                if (
+                    battle.pendingBookChoice[
+                        playerName
+                    ]
+                ) {
+
+                    socket.emit(
+                        "battleError",
+                        "Choose a book first!"
+                    );
+
+                    return;
+                }
+
+
+                battle.active[playerName] =
+                    index;
+
+
+                sendBattleAction(
+                    battle,
+                    playerName +
+                    " switched to " +
+                    battle.teams[playerName][index] +
+                    "!"
+                );
+
+
+                // Switching does NOT end the turn.
+
+                sendBattleUpdate(
+                    battle
+                );
+            }
+        );
+
+
+        // =====================
+        // DISCONNECT
+        // =====================
+
+        socket.on(
+            "disconnect",
+            () => {
+
+                console.log(
+                    "Player disconnected:",
                     socket.id
                 );
 
-            if (!playerName) {
-                return;
+
+                delete players[
+                    socket.id
+                ];
+
+
+                sendPlayerList();
             }
+        );
+    }
+);
 
-            if (
-                battle.turn !==
-                playerName
-            ) {
-                return;
-            }
-
-            const opponentName =
-                getOpponentName(
-                    battle,
-                    playerName
-                );
-
-            const opponentIndex =
-                battle.active[opponentName];
-
-            battle.hp[
-                opponentName
-            ][opponentIndex] -= 50;
-
-            sendBattleAction(
-                battle,
-                "Mrs. Smauley used " +
-                data.book +
-                " for 50 damage!"
-            );
-
-            clampStats(battle);
-
-            if (
-                checkDefeat(
-                    battle,
-                    opponentName
-                )
-            ) {
-
-                sendBattleUpdate(battle);
-
-                return;
-            }
-
-            endTurn(
-                battle,
-                playerName
-            );
-        }
-    );
-
-    // =====================
-    // SWITCH CHARACTER
-    // =====================
-
-    socket.on(
-    "switchCharacter",
-    (data) => {
-
-        const battle =
-            battles[data.battleId];
-
-        if (
-            !battle ||
-            battle.finished
-        ) {
-            return;
-        }
-
-        const playerName =
-            getBattlePlayerName(
-                battle,
-                socket.id
-            );
-
-        if (!playerName) {
-            return;
-        }
-
-        
-
-            const index =
-                Number(data.index);
-
-            if (
-                index < 0 ||
-                index > 2
-            ) {
-                return;
-            }
-
-            if (
-                battle.hp[
-                    playerName
-                ][index] <= 0
-            ) {
-
-                socket.emit(
-                    "battleError",
-                    "That character is defeated!"
-                );
-
-                return;
-            }
-
-            battle.active[
-                playerName
-            ] = index;
-
-            sendBattleAction(
-                battle,
-                playerName +
-                " switched to " +
-                battle.teams[
-                    playerName
-                ][index] +
-                "!"
-            );
-
-            sendBattleUpdate(battle);
-        
-        }
-    );
-
-    // =====================
-    // DISCONNECT
-    // =====================
-
-    socket.on(
-        "disconnect",
-        () => {
-
-            console.log(
-                "Player disconnected:",
-                socket.id
-            );
-
-            delete players[
-                socket.id
-            ];
-
-            sendPlayerList();
-        }
-    );
-});
 
 // =========================
 // START SERVER
@@ -1498,15 +4286,18 @@ io.on("connection", (socket) => {
 const PORT =
     process.env.PORT || 3000;
 
+
 server.listen(
     PORT,
     () => {
+
         console.log(
             "TeacherBattle is running!"
         );
 
         console.log(
-            "Running on port " + PORT
+            "Running on port " +
+            PORT
         );
     }
 );

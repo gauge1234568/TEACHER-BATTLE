@@ -1,856 +1,1509 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>TeacherBattle - Battle</title>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+    <title>TeacherBattle</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #1e1e1e;
+            color: white;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1, h2, h3 {
+            margin-top: 0;
+        }
+
+        .battle-container {
+            max-width: 900px;
+            margin: auto;
+        }
+
+        .player-area {
+            border: 2px solid #555;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            background: #292929;
+        }
+
+        .player-area.active {
+            border-color: #4caf50;
+        }
+
+        .stats {
+            margin: 8px 0;
+        }
+
+        .bar {
+            width: 100%;
+            height: 22px;
+            background: #444;
+            border-radius: 6px;
+            overflow: hidden;
+            margin: 5px 0 10px;
+        }
+
+        .bar-fill {
+            height: 100%;
+            width: 100%;
+            transition: width 0.2s;
+        }
+
+        .hp-fill {
+            background: #e53935;
+        }
+
+        .stamina-fill {
+            background: #fbc02d;
+        }
+
+        .energy-fill {
+            background: #2196f3;
+        }
+
+        button {
+            padding: 10px 14px;
+            margin: 5px;
+            border: none;
+            border-radius: 7px;
+            background: #444;
+            color: white;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        button:hover:not(:disabled) {
+            background: #666;
+        }
+
+        button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .moves {
+            margin-top: 15px;
+        }
+
+        .special {
+            background: #8e24aa;
+        }
+
+        .special:hover:not(:disabled) {
+            background: #ab47bc;
+        }
+
+        .switch {
+            background: #1565c0;
+        }
+
+        .switch:hover:not(:disabled) {
+            background: #1976d2;
+        }
+
+        .menu {
+            display: none;
+            border: 2px solid #777;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 10px;
+            background: #202020;
+        }
+
+        .menu h3 {
+            margin-bottom: 10px;
+        }
+
+        .battle-log {
+            background: #111;
+            border: 2px solid #444;
+            border-radius: 10px;
+            padding: 15px;
+            height: 220px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+
+        .log-entry {
+            margin-bottom: 6px;
+        }
+
+        .turn-display {
+            font-size: 20px;
+            font-weight: bold;
+            text-align: center;
+            margin: 15px 0;
+        }
+
+        .waiting {
+            color: #aaa;
+        }
+
+        .error {
+            color: #ff5252;
+            font-weight: bold;
+        }
+
+        .book-button {
+            background: #6a1b9a;
+            width: calc(100% - 10px);
+        }
+
+        .book-button:hover:not(:disabled) {
+            background: #8e24aa;
+        }
+
+        .close-button {
+            background: #777;
+        }
+
+        .character-name {
+            font-size: 18px;
+            font-weight: bold;
+        }
+    </style>
 </head>
 
 <body>
 
+<div class="battle-container">
+
     <h1>TeacherBattle</h1>
-    <h2>Battle!</h2>
 
-    <hr>
-
-    <h2 id="myName">You</h2>
-
-    <p>
-        Character:
-        <strong id="myCharacter">Loading...</strong>
-    </p>
-
-    <p>
-        HP:
-        <span id="myHP">0</span> /
-        <span id="myMaxHP">0</span>
-    </p>
-
-    <p>
-        Stamina:
-        <span id="myStamina">0</span> /
-        <span id="myMaxStamina">0</span>
-    </p>
-
-    <p>
-        Energy:
-        <span id="myEnergy">0</span> / 100
-    </p>
-
-    <hr>
-
-    <h2 id="opponentName">Opponent</h2>
-
-    <p>
-        Character:
-        <strong id="opponentCharacter">Loading...</strong>
-    </p>
-
-    <p>
-        HP:
-        <span id="opponentHP">0</span> /
-        <span id="opponentMaxHP">0</span>
-    </p>
-
-    <p>
-        Stamina:
-        <span id="opponentStamina">0</span> /
-        <span id="opponentMaxStamina">0</span>
-    </p>
-
-    <p>
-        Energy:
-        <span id="opponentEnergy">0</span> / 100
-    </p>
-
-    <hr>
-
-    <h2 id="turnStatus">Loading...</h2>
-
-    <p id="status">
-        Connecting...
-    </p>
-
-    <hr>
-
-    <h3>Character Moves</h3>
-
-    <div id="moveButtons"></div>
-
-    <br>
-
-    <button id="specialButton">
-        SPECIAL
-    </button>
-
-    <hr>
-
-    <button id="switchButton">
-        SWITCH CHARACTER
-    </button>
-
-    <div id="switchMenu" style="display: none;">
-
-        <h3>Choose Character</h3>
-
-        <button class="switchCharacter" data-index="0">
-            Character 1
-        </button>
-
-        <button class="switchCharacter" data-index="1">
-            Character 2
-        </button>
-
-        <button class="switchCharacter" data-index="2">
-            Character 3
-        </button>
-
+    <div
+        id="turnDisplay"
+        class="turn-display"
+    >
+        Waiting for battle...
     </div>
 
-    <hr>
+    <!-- MY PLAYER -->
+    <div
+        id="myArea"
+        class="player-area"
+    >
+        <h2>You</h2>
 
-    <h3>Battle Log</h3>
+        <div
+            id="myCharacter"
+            class="character-name"
+        >
+            Loading...
+        </div>
 
-    <div id="battleLog">
-        <p>Waiting for battle...</p>
+        <div class="stats">
+            HP:
+            <span id="myHpText">0 / 0</span>
+
+            <div class="bar">
+                <div
+                    id="myHpBar"
+                    class="bar-fill hp-fill"
+                ></div>
+            </div>
+
+            Stamina:
+            <span id="myStaminaText">0 / 0</span>
+
+            <div class="bar">
+                <div
+                    id="myStaminaBar"
+                    class="bar-fill stamina-fill"
+                ></div>
+            </div>
+
+            Energy:
+            <span id="myEnergyText">0 / 100</span>
+
+            <div class="bar">
+                <div
+                    id="myEnergyBar"
+                    class="bar-fill energy-fill"
+                ></div>
+            </div>
+        </div>
+
+        <div class="moves">
+            <h3>Moves</h3>
+
+            <div id="moveButtons"></div>
+
+            <button
+                id="specialButton"
+                class="special"
+                disabled
+            >
+                SPECIAL
+            </button>
+
+            <button
+                id="switchButton"
+                class="switch"
+                disabled
+            >
+                SWITCH CHARACTER
+            </button>
+        </div>
+
+        <!-- SWITCH MENU -->
+        <div
+            id="switchMenu"
+            class="menu"
+        >
+            <h3>Choose a Character</h3>
+
+            <button
+                class="switchCharacter"
+                data-index="0"
+            >
+                Character 1
+            </button>
+
+            <button
+                class="switchCharacter"
+                data-index="1"
+            >
+                Character 2
+            </button>
+
+            <button
+                class="switchCharacter"
+                data-index="2"
+            >
+                Character 3
+            </button>
+
+            <br>
+
+            <button
+                id="closeSwitch"
+                class="close-button"
+            >
+                Cancel
+            </button>
+        </div>
+
+        <!-- BOOK MENU -->
+        <div
+            id="bookMenu"
+            class="menu"
+        >
+            <h3>Choose a Book</h3>
+
+            <p>
+                Choose a literature book for the special attack.
+            </p>
+
+            <div id="bookButtons"></div>
+
+            <button
+                id="closeBook"
+                class="close-button"
+            >
+                Cancel
+            </button>
+        </div>
     </div>
 
+    <!-- OPPONENT -->
+    <div
+        id="opponentArea"
+        class="player-area"
+    >
+        <h2>Opponent</h2>
 
-    <script src="/socket.io/socket.io.js"></script>
+        <div
+            id="opponentName"
+            class="character-name"
+        >
+            Waiting...
+        </div>
 
-    <script>
+        <div class="stats">
+            HP:
+            <span id="opponentHpText">0 / 0</span>
 
-        const socket = io();
+            <div class="bar">
+                <div
+                    id="opponentHpBar"
+                    class="bar-fill hp-fill"
+                ></div>
+            </div>
 
-        const battleId =
-            sessionStorage.getItem("battleId");
+            Stamina:
+            <span id="opponentStaminaText">0 / 0</span>
 
-        const playerName =
-            sessionStorage.getItem("playerName");
+            <div class="bar">
+                <div
+                    id="opponentStaminaBar"
+                    class="bar-fill stamina-fill"
+                ></div>
+            </div>
 
-        const specialButton =
-            document.getElementById("specialButton");
+            Energy:
+            <span id="opponentEnergyText">0 / 100</span>
 
-        const switchButton =
-            document.getElementById("switchButton");
+            <div class="bar">
+                <div
+                    id="opponentEnergyBar"
+                    class="bar-fill energy-fill"
+                ></div>
+            </div>
+        </div>
 
-        const moveButtons =
-            document.getElementById("moveButtons");
+        <div>
+            <strong>Last Move:</strong>
+            <span id="opponentLastMove">None</span>
+        </div>
+    </div>
 
-        const switchMenu =
-            document.getElementById("switchMenu");
+    <!-- BATTLE LOG -->
+    <div class="battle-log">
+        <h3>Battle Log</h3>
 
-        const turnStatus =
-            document.getElementById("turnStatus");
+        <div id="battleLog"></div>
+    </div>
 
-        const status =
-            document.getElementById("status");
+</div>
 
-        const battleLog =
-            document.getElementById("battleLog");
+<script src="/socket.io/socket.io.js"></script>
 
+<script>
 
-        if (!battleId || !playerName) {
+const socket = io();
 
-            window.location.href =
-                "lobby.html";
+const playerName =
+    sessionStorage.getItem("playerName") ||
+    localStorage.getItem("playerName");
 
-        }
+const battleId =
+    sessionStorage.getItem("battleId") ||
+    localStorage.getItem("battleId");
 
+if (!playerName) {
+    console.error("No player name found.");
+}
 
-        socket.on("connect", () => {
-
-            status.textContent =
-                "Connected! Loading battle...";
-
-            socket.emit(
-                "requestBattle",
-                {
-                    battleId: battleId,
-                    playerName: playerName
-                }
-            );
-
-        });
+if (!battleId) {
+    console.error("No battle ID found.");
+}
 
 
-        socket.on(
-            "battleUpdate",
-            (battle) => {
+// --------------------------------------------------
+// ELEMENTS
+// --------------------------------------------------
 
-                updateScreen(battle);
+const turnDisplay =
+    document.getElementById("turnDisplay");
 
+const myCharacter =
+    document.getElementById("myCharacter");
+
+const myHpText =
+    document.getElementById("myHpText");
+
+const myStaminaText =
+    document.getElementById("myStaminaText");
+
+const myEnergyText =
+    document.getElementById("myEnergyText");
+
+const myHpBar =
+    document.getElementById("myHpBar");
+
+const myStaminaBar =
+    document.getElementById("myStaminaBar");
+
+const myEnergyBar =
+    document.getElementById("myEnergyBar");
+
+const opponentName =
+    document.getElementById("opponentName");
+
+const opponentHpText =
+    document.getElementById("opponentHpText");
+
+const opponentStaminaText =
+    document.getElementById("opponentStaminaText");
+
+const opponentEnergyText =
+    document.getElementById("opponentEnergyText");
+
+const opponentHpBar =
+    document.getElementById("opponentHpBar");
+
+const opponentStaminaBar =
+    document.getElementById("opponentStaminaBar");
+
+const opponentEnergyBar =
+    document.getElementById("opponentEnergyBar");
+
+const opponentLastMove =
+    document.getElementById("opponentLastMove");
+
+const moveButtons =
+    document.getElementById("moveButtons");
+
+const specialButton =
+    document.getElementById("specialButton");
+
+const switchButton =
+    document.getElementById("switchButton");
+
+const switchMenu =
+    document.getElementById("switchMenu");
+
+const bookMenu =
+    document.getElementById("bookMenu");
+
+const bookButtons =
+    document.getElementById("bookButtons");
+
+const closeSwitch =
+    document.getElementById("closeSwitch");
+
+const closeBook =
+    document.getElementById("closeBook");
+
+const battleLog =
+    document.getElementById("battleLog");
+
+
+// --------------------------------------------------
+// CHARACTER MOVES
+// --------------------------------------------------
+
+function getMoves(character) {
+
+    if (character === "Mr. Sannes") {
+
+        return [
+            {
+                name: "VOICE CRACK",
+                id: "voicecrack"
+            },
+            {
+                name: "3 2 1 0",
+                id: "3210"
+            },
+            {
+                name: "4 QUARTERS",
+                id: "4quarters"
             }
-        );
+        ];
+
+    }
 
 
-        socket.on(
-            "battleError",
-            (message) => {
+    if (character === "Mr. Dutlinger") {
 
-                status.textContent =
-                    message;
-
+        return [
+            {
+                name: "MARINE BOOTCAMP",
+                id: "marinebootcamp"
+            },
+            {
+                name: "HOORAH",
+                id: "hoorah"
+            },
+            {
+                name: "MTN DEW CHUCK",
+                id: "mtndewchuck"
             }
-        );
+        ];
+
+    }
 
 
-        socket.on(
-            "battleAction",
-            (message) => {
+    if (character === "Dr. Savic") {
 
-                addLog(message);
-
+        return [
+            {
+                name: "GUITAR SMASH",
+                id: "guitarsmash"
+            },
+            {
+                name: "MUSIC NOTES",
+                id: "musicnotes"
+            },
+            {
+                name: "MUSIC HISTORY DAY",
+                id: "musichistoryday"
             }
-        );
+        ];
+
+    }
 
 
-        socket.on(
-            "battleWon",
-            () => {
+    if (character === "Mrs. Smauley") {
 
-                turnStatus.textContent =
-                    "YOU WIN!";
-
-                disableActions();
-
-                addLog("YOU WON!");
-
+        return [
+            {
+                name: "RULER SMACK",
+                id: "rulersmack"
+            },
+            {
+                name: "BOOK MINIGUN",
+                id: "bookminigun"
+            },
+            {
+                name: "DETENTION",
+                id: "detention"
             }
-        );
+        ];
+
+    }
 
 
-        socket.on(
-            "battleLost",
-            () => {
+    if (character === "Mrs. Aysien") {
 
-                turnStatus.textContent =
-                    "YOU LOSE!";
-
-                disableActions();
-
-                addLog("YOU LOST!");
-
+        return [
+            {
+                name: "BURNING WHITE HOUSE",
+                id: "burningwhitehouse"
+            },
+            {
+                name: "GUERILLA WARFARE",
+                id: "guerillawarfare"
+            },
+            {
+                name: "WASHINGTON SPEECH",
+                id: "washingtonspeech"
             }
-        );
+        ];
+
+    }
 
 
-        function updateScreen(battle) {
+    if (character === "Mr. Smauley") {
 
-            const opponentName =
-                battle.names.find(
-                    name => name !== playerName
-                );
-
-            if (!opponentName) {
-
-                status.textContent =
-                    "ERROR: Opponent not found.";
-
-                return;
-
+        return [
+            {
+                name: "MAP DAY",
+                id: "mapday"
+            },
+            {
+                name: "AUGUSTUS CHARM",
+                id: "augustuscharm"
+            },
+            {
+                name: "BACKSTAB",
+                id: "backstab"
             }
+        ];
+
+    }
 
 
-            const myCharacterIndex =
-                battle.active[playerName];
-
-            const opponentCharacterIndex =
-                battle.active[opponentName];
+    return [];
+}
 
 
-            const myCharacter =
-                battle.teams[playerName]
-                    [myCharacterIndex];
-                    const specialNames = {
-    "Mr. Sannes": "GOLDEN SANNES",
-    "Mr. Dutlinger": "50 CAL. TURRET",
-    "Dr. Savic": "MUSIC LISTENING TEST",
-    "Mrs. Smauley": "LITERATURE BOOKS",
-    "Mrs. Aysien": "PENCIL STAB",
-    "Mr. Smauley": "BACKUP"
+// --------------------------------------------------
+// SPECIAL NAMES
+// --------------------------------------------------
+
+const specialNames = {
+
+    "Mr. Sannes":
+        "GOLDEN SANNES",
+
+    "Mr. Dutlinger":
+        "50 CAL. TURRET",
+
+    "Dr. Savic":
+        "MUSIC LISTENING TEST",
+
+    "Mrs. Smauley":
+        "LITERATURE BOOKS",
+
+    "Mrs. Aysien":
+        "PENCIL STAB",
+
+    "Mr. Smauley":
+        "BACKUP"
 };
 
-specialButton.textContent =
-    specialNames[myCharacter] || "SPECIAL";
 
-            const opponentCharacter =
-                battle.teams[opponentName]
-                    [opponentCharacterIndex];
+// --------------------------------------------------
+// UPDATE MOVE BUTTONS
+// --------------------------------------------------
 
+function updateMoveButtons(
+    character,
+    myTurn
+) {
 
-            document.getElementById(
-                "myName"
-            ).textContent =
-                playerName;
+    moveButtons.innerHTML = "";
 
+    const moves =
+        getMoves(character);
 
-            document.getElementById(
-                "opponentName"
-            ).textContent =
-                opponentName;
+    moves.forEach(
+        (move) => {
 
+            const button =
+                document.createElement("button");
 
-            document.getElementById(
-                "myCharacter"
-            ).textContent =
-                myCharacter;
+            button.textContent =
+                move.name;
 
+            button.dataset.move =
+                move.id;
 
-            document.getElementById(
-                "opponentCharacter"
-            ).textContent =
-                opponentCharacter;
-
-
-            const myHP =
-                battle.hp[playerName]
-                    [myCharacterIndex];
-
-            const myMaxHP =
-                battle.maxHP[playerName]
-                    [myCharacterIndex];
-
-            const myStamina =
-                battle.stamina[playerName]
-                    [myCharacterIndex];
-
-            const myMaxStamina =
-                battle.maxStamina[playerName]
-                    [myCharacterIndex];
-
-            const myEnergy =
-                battle.energy[playerName]
-                    [myCharacterIndex];
-
-
-            document.getElementById(
-                "myHP"
-            ).textContent =
-                myHP;
-
-            document.getElementById(
-                "myMaxHP"
-            ).textContent =
-                myMaxHP;
-
-            document.getElementById(
-                "myStamina"
-            ).textContent =
-                myStamina;
-
-            document.getElementById(
-                "myMaxStamina"
-            ).textContent =
-                myMaxStamina;
-
-            document.getElementById(
-                "myEnergy"
-            ).textContent =
-                myEnergy;
-
-
-            const opponentHP =
-                battle.hp[opponentName]
-                    [opponentCharacterIndex];
-
-            const opponentMaxHP =
-                battle.maxHP[opponentName]
-                    [opponentCharacterIndex];
-
-            const opponentStamina =
-                battle.stamina[opponentName]
-                    [opponentCharacterIndex];
-
-            const opponentMaxStamina =
-                battle.maxStamina[opponentName]
-                    [opponentCharacterIndex];
-
-            const opponentEnergy =
-                battle.energy[opponentName]
-                    [opponentCharacterIndex];
-
-
-            document.getElementById(
-                "opponentHP"
-            ).textContent =
-                opponentHP;
-
-            document.getElementById(
-                "opponentMaxHP"
-            ).textContent =
-                opponentMaxHP;
-
-            document.getElementById(
-                "opponentStamina"
-            ).textContent =
-                opponentStamina;
-
-            document.getElementById(
-                "opponentMaxStamina"
-            ).textContent =
-                opponentMaxStamina;
-
-            document.getElementById(
-                "opponentEnergy"
-            ).textContent =
-                opponentEnergy;
-
-
-            const myTurn =
-                battle.turn === playerName;
-
-
-            if (myTurn) {
-
-                turnStatus.textContent =
-                    "YOUR TURN";
-
-                status.textContent =
-                    "Choose a move.";
-
-            } else {
-
-                turnStatus.textContent =
-                    "OPPONENT'S TURN";
-
-                status.textContent =
-                    "Waiting for opponent...";
-
-            }
-
-
-            specialButton.disabled =
-                !myTurn || myEnergy < 100;
-
-            switchButton.disabled =
+            button.disabled =
                 !myTurn;
 
+            button.onclick =
+                () => {
 
-            updateMoveButtons(
-                myCharacter,
-                myTurn
+                    if (button.disabled) {
+                        return;
+                    }
+
+                    sendMove(move.id);
+                };
+
+            moveButtons.appendChild(
+                button
             );
-
-
-            updateSwitchButtons(
-                battle,
-                playerName,
-                myTurn
-            );
-
         }
+    );
+}
 
 
-        function updateMoveButtons(
-            character,
-            myTurn
-        ) {
+// --------------------------------------------------
+// SEND NORMAL MOVE
+// --------------------------------------------------
 
-            moveButtons.innerHTML = "";
+function sendMove(move) {
 
-            const moves =
-                getMoves(character);
+    disableActions();
 
-
-            moves.forEach(
-                (move) => {
-
-                    const button =
-                        document.createElement(
-                            "button"
-                        );
-
-
-                    button.textContent =
-                        move.name;
-
-
-                    button.disabled =
-                        !myTurn;
-
-
-                    button.onclick =
-                        () => {
-
-                            disableActions();
-
-
-                            socket.emit(
-                                "useMove",
-                                {
-                                    battleId:
-                                        battleId,
-
-                                    moveId:
-                                        move.id
-                                }
-                            );
-
-                        };
-
-
-                    moveButtons.appendChild(
-                        button
-                    );
-
-                }
-            );
-
+    socket.emit(
+        "battleMove",
+        {
+            battleId: battleId,
+            move: move
         }
+    );
+}
 
 
-        function getMoves(character) {
+// --------------------------------------------------
+// UPDATE SWITCH BUTTONS
+// --------------------------------------------------
 
-            if (
-                character === "Mr. Sannes"
-            ) {
+function updateSwitchButtons(
+    battle,
+    player
+) {
 
-                return [
+    const buttons =
+        document.querySelectorAll(
+            ".switchCharacter"
+        );
 
-                    {
-                        name:
-                            "VOICECRACK",
-                        id:
-                            "voicecrack"
-                    },
+    buttons.forEach(
+        (button) => {
 
-                    {
-                        name:
-                            "3210",
-                        id:
-                            "3210"
-                    },
-
-                    {
-                        name:
-                            "4 QUARTERS",
-                        id:
-                            "4quarters"
-                    }
-
-                ];
-
-            }
-
-
-            if (
-                character === "Mr. Dutlinger"
-            ) {
-
-                return [
-
-                    {
-                        name:
-                            "MARINE BOOTCAMP",
-                        id:
-                            "marinebootcamp"
-                    },
-
-                    {
-                        name:
-                            "HOO-RAH",
-                        id:
-                            "hoorah"
-                    },
-
-                    {
-                        name:
-                            "MTN DEW CHUCK",
-                        id:
-                            "mtndewchuck"
-                    }
-
-                ];
-
-            }
-
-
-            if (
-                character === "Dr. Savic"
-            ) {
-
-                return [
-
-                    {
-                        name:
-                            "GUITAR SMASH",
-                        id:
-                            "guitarsmash"
-                    },
-
-                    {
-                        name:
-                            "MUSIC NOTES",
-                        id:
-                            "musicnotes"
-                    },
-
-                    {
-                        name:
-                            "MUSIC HISTORY DAY",
-                        id:
-                            "musichistoryday"
-                    }
-
-                ];
-
-            }
-
-
-            if (
-                character === "Mrs. Smauley"
-            ) {
-
-                return [
-
-                    {
-                        name:
-                            "RULER SMACK",
-                        id:
-                            "rulersmack"
-                    },
-
-                    {
-                        name:
-                            "BOOK MINIGUN",
-                        id:
-                            "bookminigun"
-                    }
-
-                ];
-
-            }
-
-
-            if (
-                character === "Mrs. Aysien"
-            ) {
-
-                return [
-
-                    {
-                        name:
-                            "BURNING OF THE WHITE HOUSE",
-                        id:
-                            "burningwhitehouse"
-                    },
-
-                    {
-                        name:
-                            "GUERILLA WARFARE",
-                        id:
-                            "guerillawarfare"
-                    },
-
-                    {
-                        name:
-                            "WASHINGTON'S SPEECH",
-                        id:
-                            "washingtonspeech"
-                    }
-
-                ];
-
-            }
-
-
-            if (
-                character === "Mr. Smauley"
-            ) {
-
-                return [
-
-                    {
-                        name:
-                            "MAP DAY",
-                        id:
-                            "mapday"
-                    },
-
-                    {
-                        name:
-                            "AUGUSTUS' CHARM",
-                        id:
-                            "augustuscharm"
-                    },
-
-                    {
-                        name:
-                            "BACKSTAB",
-                        id:
-                            "backstab"
-                    }
-
-                ];
-
-            }
-
-
-            return [];
-
-        }
-
-
-        specialButton.onclick =
-            () => {
-
-                disableActions();
-
-
-                socket.emit(
-                    "special",
-                    battleId
+            const index =
+                Number(
+                    button.dataset.index
                 );
 
-            };
+            if (
+                !battle.teams[player] ||
+                !battle.teams[player][index]
+            ) {
+                button.textContent =
+                    "Empty";
+
+                button.disabled =
+                    true;
+
+                return;
+            }
+
+            const character =
+                battle.teams[player][index];
+
+            button.textContent =
+                character;
+
+            const hp =
+                battle.hp[player][index];
+
+            const stamina =
+                battle.stamina[player][index];
+
+            button.disabled =
+                hp <= 0 ||
+                stamina <= 0 ||
+                battle.active[player] === index;
+        }
+    );
+}
 
 
-        switchButton.onclick =
+// --------------------------------------------------
+// UPDATE BAR
+// --------------------------------------------------
+
+function updateBar(
+    element,
+    current,
+    maximum
+) {
+
+    if (
+        !maximum ||
+        maximum <= 0
+    ) {
+
+        element.style.width =
+            "0%";
+
+        return;
+    }
+
+    let percentage =
+        (current / maximum) * 100;
+
+    percentage =
+        Math.max(
+            0,
+            Math.min(
+                100,
+                percentage
+            )
+        );
+
+    element.style.width =
+        percentage + "%";
+}
+
+
+// --------------------------------------------------
+// FIND PLAYER INDEX
+// --------------------------------------------------
+
+function getMyIndex(battle) {
+
+    if (
+        !battle.names ||
+        !Array.isArray(battle.names)
+    ) {
+        return -1;
+    }
+
+    return battle.names.indexOf(
+        playerName
+    );
+}
+
+
+// --------------------------------------------------
+// UPDATE SCREEN
+// --------------------------------------------------
+
+function updateScreen(battle) {
+
+    if (!battle) {
+        return;
+    }
+
+    const myIndex =
+        getMyIndex(battle);
+
+    if (myIndex === -1) {
+        return;
+    }
+
+    const names =
+        battle.names;
+
+    const opponentIndex =
+        myIndex === 0
+            ? 1
+            : 0;
+
+    const opponentPlayer =
+        names[opponentIndex];
+
+    if (!opponentPlayer) {
+
+        turnDisplay.textContent =
+            "Waiting for opponent...";
+
+        return;
+    }
+
+
+    // --------------------------------------------------
+    // MY ACTIVE CHARACTER
+    // --------------------------------------------------
+
+    const myActiveIndex =
+        battle.active[playerName];
+
+    const myCharacterName =
+        battle.teams[playerName]
+            [myActiveIndex];
+
+    const myHp =
+        battle.hp[playerName]
+            [myActiveIndex];
+
+    const myStamina =
+        battle.stamina[playerName]
+            [myActiveIndex];
+
+    const myEnergy =
+        battle.energy[playerName]
+            [myActiveIndex];
+
+
+    // --------------------------------------------------
+    // OPPONENT ACTIVE CHARACTER
+    // --------------------------------------------------
+
+    const opponentActiveIndex =
+        battle.active[opponentPlayer];
+
+    const opponentCharacterName =
+        battle.teams[opponentPlayer]
+            [opponentActiveIndex];
+
+    const opponentHp =
+        battle.hp[opponentPlayer]
+            [opponentActiveIndex];
+
+    const opponentStamina =
+        battle.stamina[opponentPlayer]
+            [opponentActiveIndex];
+
+    const opponentEnergy =
+        battle.energy[opponentPlayer]
+            [opponentActiveIndex];
+
+
+    // --------------------------------------------------
+    // DISPLAY MY STATS
+    // --------------------------------------------------
+
+    myCharacter.textContent =
+        myCharacterName;
+
+    myHpText.textContent =
+        myHp +
+        " / " +
+        battle.maxHp[playerName]
+            [myActiveIndex];
+
+    myStaminaText.textContent =
+        myStamina +
+        " / " +
+        battle.maxStamina[playerName]
+            [myActiveIndex];
+
+    myEnergyText.textContent =
+        myEnergy +
+        " / 100";
+
+
+    updateBar(
+        myHpBar,
+        myHp,
+        battle.maxHp[playerName]
+            [myActiveIndex]
+    );
+
+    updateBar(
+        myStaminaBar,
+        myStamina,
+        battle.maxStamina[playerName]
+            [myActiveIndex]
+    );
+
+    updateBar(
+        myEnergyBar,
+        myEnergy,
+        100
+    );
+
+
+    // --------------------------------------------------
+    // DISPLAY OPPONENT STATS
+    // --------------------------------------------------
+
+    opponentName.textContent =
+        opponentPlayer +
+        " — " +
+        opponentCharacterName;
+
+    opponentHpText.textContent =
+        opponentHp +
+        " / " +
+        battle.maxHp[opponentPlayer]
+            [opponentActiveIndex];
+
+    opponentStaminaText.textContent =
+        opponentStamina +
+        " / " +
+        battle.maxStamina[opponentPlayer]
+            [opponentActiveIndex];
+
+    opponentEnergyText.textContent =
+        opponentEnergy +
+        " / 100";
+
+
+    updateBar(
+        opponentHpBar,
+        opponentHp,
+        battle.maxHp[opponentPlayer]
+            [opponentActiveIndex]
+    );
+
+    updateBar(
+        opponentStaminaBar,
+        opponentStamina,
+        battle.maxStamina[opponentPlayer]
+            [opponentActiveIndex]
+    );
+
+    updateBar(
+        opponentEnergyBar,
+        opponentEnergy,
+        100
+    );
+
+
+    // --------------------------------------------------
+    // TURN
+    // --------------------------------------------------
+
+    const myTurn =
+        battle.turn === playerName;
+
+
+    if (battle.finished) {
+
+        turnDisplay.textContent =
+            "Battle Finished";
+
+    } else if (myTurn) {
+
+        turnDisplay.textContent =
+            "YOUR TURN";
+
+    } else {
+
+        turnDisplay.textContent =
+            "OPPONENT'S TURN";
+    }
+
+
+    // --------------------------------------------------
+    // MOVE BUTTONS
+    // --------------------------------------------------
+
+    updateMoveButtons(
+        myCharacterName,
+        myTurn
+    );
+
+
+    // --------------------------------------------------
+    // SPECIAL
+    // --------------------------------------------------
+
+    const waitingForBookChoice =
+        battle.pendingBookChoice &&
+        battle.pendingBookChoice[playerName];
+
+
+    specialButton.textContent =
+        "SPECIAL";
+
+    specialButton.disabled =
+        battle.finished ||
+        !myTurn ||
+        myEnergy < 100 ||
+        waitingForBookChoice === true;
+
+
+    // --------------------------------------------------
+    // SWITCH
+    // --------------------------------------------------
+
+    switchButton.disabled =
+        battle.finished;
+
+    updateSwitchButtons(
+        battle,
+        playerName
+    );
+
+
+    // --------------------------------------------------
+    // LAST MOVE
+    // --------------------------------------------------
+
+    if (
+        battle.lastMove &&
+        battle.lastMove[opponentPlayer]
+    ) {
+
+        opponentLastMove.textContent =
+            battle.lastMove[
+                opponentPlayer
+            ];
+
+    } else {
+
+        opponentLastMove.textContent =
+            "None";
+    }
+
+
+    // --------------------------------------------------
+    // IF WAITING FOR BOOK CHOICE
+    // --------------------------------------------------
+
+    if (waitingForBookChoice) {
+
+        turnDisplay.textContent =
+            "CHOOSE A BOOK";
+
+        specialButton.disabled =
+            true;
+    }
+}
+
+
+// --------------------------------------------------
+// DISABLE ACTIONS
+// --------------------------------------------------
+
+function disableActions() {
+
+    specialButton.disabled =
+        true;
+
+    switchButton.disabled =
+        true;
+
+    const buttons =
+        moveButtons.querySelectorAll(
+            "button"
+        );
+
+    buttons.forEach(
+        (button) => {
+
+            button.disabled =
+                true;
+        }
+    );
+}
+
+
+// --------------------------------------------------
+// SHOW ERROR
+// --------------------------------------------------
+
+function showError(message) {
+
+    const entry =
+        document.createElement("div");
+
+    entry.className =
+        "log-entry error";
+
+    entry.textContent =
+        message;
+
+    battleLog.appendChild(
+        entry
+    );
+
+    battleLog.scrollTop =
+        battleLog.scrollHeight;
+}
+
+
+// --------------------------------------------------
+// BATTLE LOG
+// --------------------------------------------------
+
+function addLog(message) {
+
+    const entry =
+        document.createElement("div");
+
+    entry.className =
+        "log-entry";
+
+    entry.textContent =
+        message;
+
+    battleLog.appendChild(
+        entry
+    );
+
+    battleLog.scrollTop =
+        battleLog.scrollHeight;
+}
+
+
+// --------------------------------------------------
+// SPECIAL BUTTON
+// --------------------------------------------------
+
+specialButton.onclick =
+    () => {
+
+        if (
+            specialButton.disabled
+        ) {
+            return;
+        }
+
+        disableActions();
+
+        socket.emit(
+            "specialMove",
+            {
+                battleId:
+                    battleId
+            }
+        );
+    };
+
+
+// --------------------------------------------------
+// SWITCH BUTTON
+// --------------------------------------------------
+
+switchButton.onclick =
+    () => {
+
+        if (
+            switchButton.disabled
+        ) {
+            return;
+        }
+
+        bookMenu.style.display =
+            "none";
+
+        switchMenu.style.display =
+            "block";
+    };
+
+
+// --------------------------------------------------
+// CLOSE SWITCH MENU
+// --------------------------------------------------
+
+closeSwitch.onclick =
+    () => {
+
+        switchMenu.style.display =
+            "none";
+    };
+
+
+// --------------------------------------------------
+// SWITCH CHARACTERS
+// --------------------------------------------------
+
+document.querySelectorAll(
+    ".switchCharacter"
+).forEach(
+    (button) => {
+
+        button.onclick =
             () => {
 
                 if (
-                    switchButton.disabled
+                    button.disabled
                 ) {
-
                     return;
-
                 }
 
+                const index =
+                    Number(
+                        button.dataset.index
+                    );
 
                 switchMenu.style.display =
-                    "block";
+                    "none";
 
+                disableActions();
+
+                socket.emit(
+                    "switchCharacter",
+                    {
+                        battleId:
+                            battleId,
+
+                        index:
+                            index
+                    }
+                );
             };
+    }
+);
 
 
-        function updateSwitchButtons(
-            battle,
-            player,
-            myTurn
+// --------------------------------------------------
+// CLOSE BOOK MENU
+// --------------------------------------------------
+
+closeBook.onclick =
+    () => {
+
+        bookMenu.style.display =
+            "none";
+    };
+
+
+// --------------------------------------------------
+// BOOK CHOICE
+// --------------------------------------------------
+
+socket.on(
+    "bookChoice",
+    (data) => {
+
+        bookButtons.innerHTML = "";
+
+        let books = [];
+
+        if (
+            data &&
+            Array.isArray(data.books)
         ) {
 
-            const buttons =
-                document.querySelectorAll(
-                    ".switchCharacter"
-                );
+            books =
+                data.books;
 
+        } else if (
+            Array.isArray(data)
+        ) {
 
-            buttons.forEach(
-                (button) => {
-
-                    const index =
-                        Number(
-                            button.dataset.index
-                        );
-
-
-                    const character =
-                        battle.teams[player]
-                            [index];
-
-
-                    button.textContent =
-                        character;
-
-
-                    button.disabled =
-                        !myTurn ||
-                        battle.hp[player][index] <= 0 ||
-                        battle.active[player] === index;
-
-                }
-            );
-
+            books =
+                data;
         }
 
 
-        document.querySelectorAll(
-            ".switchCharacter"
-        ).forEach(
-            (button) => {
+        if (books.length === 0) {
+
+            showError(
+                "No books were provided."
+            );
+
+            return;
+        }
+
+
+        books.forEach(
+            (book) => {
+
+                const button =
+                    document.createElement(
+                        "button"
+                    );
+
+                button.className =
+                    "book-button";
+
+                button.textContent =
+                    book;
 
                 button.onclick =
                     () => {
 
-                        const index =
-                            Number(
-                                button.dataset.index
-                            );
-
-
-                        switchMenu.style.display =
+                        bookMenu.style.display =
                             "none";
-
 
                         disableActions();
 
-
                         socket.emit(
-                            "switchCharacter",
+                            "bookChoice",
                             {
                                 battleId:
                                     battleId,
 
-                                index:
-                                    index
+                                book:
+                                    book
                             }
                         );
-
                     };
 
+                bookButtons.appendChild(
+                    button
+                );
             }
         );
 
 
-        function disableActions() {
+        switchMenu.style.display =
+            "none";
 
-            specialButton.disabled =
-                true;
-
-            switchButton.disabled =
-                true;
-
-
-            const buttons =
-                moveButtons.querySelectorAll(
-                    "button"
-                );
+        bookMenu.style.display =
+            "block";
+    }
+);
 
 
-            buttons.forEach(
-                (button) => {
+// --------------------------------------------------
+// BATTLE UPDATE
+// --------------------------------------------------
 
-                    button.disabled =
-                        true;
+socket.on(
+    "battleUpdate",
+    (battle) => {
 
-                }
+        updateScreen(
+            battle
+        );
+    }
+);
+
+
+// --------------------------------------------------
+// BATTLE ACTION / LOG
+// --------------------------------------------------
+
+socket.on(
+    "battleAction",
+    (message) => {
+
+        addLog(
+            message
+        );
+    }
+);
+
+
+// --------------------------------------------------
+// BATTLE ERROR
+// --------------------------------------------------
+
+socket.on(
+    "battleError",
+    (message) => {
+
+        showError(
+            message
+        );
+
+        // Let the next battleUpdate
+        // restore the correct buttons.
+    }
+);
+
+
+// --------------------------------------------------
+// BATTLE FINISHED
+// --------------------------------------------------
+
+socket.on(
+    "battleFinished",
+    (data) => {
+
+        if (
+            data &&
+            data.message
+        ) {
+
+            addLog(
+                data.message
             );
 
-        }
+        } else {
 
-
-        function addLog(message) {
-
-            const line =
-                document.createElement(
-                    "p"
-                );
-
-
-            line.textContent =
-                message;
-
-
-            battleLog.appendChild(
-                line
+            addLog(
+                "Battle finished!"
             );
-
-
-            battleLog.scrollTop =
-                battleLog.scrollHeight;
-
         }
 
-    </script>
+        disableActions();
+
+        switchButton.disabled =
+            true;
+    }
+);
+
+
+// --------------------------------------------------
+// CONNECTION
+// --------------------------------------------------
+
+socket.on(
+    "connect",
+    () => {
+
+        console.log(
+            "Connected to server:",
+            socket.id
+        );
+
+        socket.emit(
+            "joinBattle",
+            {
+                battleId:
+                    battleId,
+
+                playerName:
+                    playerName
+            }
+        );
+    }
+);
+
+
+socket.on(
+    "disconnect",
+    () => {
+
+        turnDisplay.textContent =
+            "Disconnected from server.";
+    }
+);
+
+
+// --------------------------------------------------
+// INITIAL MESSAGE
+// --------------------------------------------------
+
+if (!playerName) {
+
+    addLog(
+        "ERROR: Player name was not found."
+    );
+}
+
+if (!battleId) {
+
+    addLog(
+        "ERROR: Battle ID was not found."
+    );
+}
+
+</script>
 
 </body>
 </html>
